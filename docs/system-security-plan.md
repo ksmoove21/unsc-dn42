@@ -11,11 +11,13 @@
 
 ## System Description
 
-The system provides controlled DNS and web services to DN42 participants. The architecture separates external DN42 transport, boundary-routing functions, firewall policy enforcement, service workloads, and enclave-local patch distribution.
+The system provides controlled DNS and web services to DN42 participants. The architecture separates external DN42 transport, routed service domains, firewall policy enforcement, service workloads, and enclave-local patch distribution.
 
 ## Security Architecture
 
-DN42 traffic enters through the edge-routing function and is subject to boundary firewall policy before it may access an authorized service. The architecture applies logical segmentation between the DN42 enclave and other routing domains. Service administration is separated from DN42 client access.
+The Nexus switching layer provides the default gateway for headquarters DN42 administrative and public-service routing domains. Each routing domain exchanges only approved routes with Cerberus through dedicated eBGP handoffs. Cerberus provides the security-policy enforcement point between the external DN42 domain, internal service domains, and SD-WAN transport.
+
+At Cybertron, the local firewall provides gateway and policy-enforcement functions for the administrative and public-service routing domains. SD-WAN carries approved DN42 routes between authorized sites but does not establish unrestricted trust between them.
 
 ## Authorized Services
 
@@ -27,9 +29,9 @@ DN42 traffic enters through the edge-routing function and is subject to boundary
 
 | Security objective | Implementation approach |
 |---|---|
-| Boundary protection | Firewall policy enforcement for DN42 ingress, egress, and interconnection traffic |
-| Least privilege | Explicit service, update, and routing policy; deny-by-default access |
-| Network segmentation | Dedicated logical routing domain and restricted route exchange |
+| Boundary protection | Firewall policy enforcement for DN42 ingress, egress, interconnection, and SD-WAN traffic |
+| Least privilege | Explicit service, update, and route-exchange policy; deny-by-default access |
+| Network segmentation | Dedicated DN42 VRFs, zones, and restricted eBGP route exchange |
 | Flaw remediation | Enclave-local WSUS service distributes approved update content to Windows workloads |
 | Secure communications | Authenticated encryption for any enclave-to-enclave protected overlay |
 | Audit and accountability | Logging at defined routing and policy-enforcement points |
