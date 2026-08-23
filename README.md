@@ -11,8 +11,9 @@ This repository contains the system-level documentation supporting the enclave's
 - [System Security Plan](docs/system-security-plan.md)
 - [System Boundary](docs/system-boundary.md)
 - [Security Requirements](docs/requirements.md)
+- [Patch Management Architecture](docs/patch-management.md)
 
 ## References
 
 - [NIST SP 800-37 Rev. 2](https://csrc.nist.gov/pubs/sp/800/37/r2/final)
-- [NIST System Security Plan definition](https://csrc.nist.gov/glossary/term/system_security_plan)
+- [NIST SP 800-53 Rev. 5.2](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final)
