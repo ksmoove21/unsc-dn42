@@ -1,28 +1,26 @@
-# Requirements
+# Security Requirements
 
-## Mission
+## Information Types
 
-Provide a small, controlled DN42 service enclave for learning inter-domain routing, security architecture, service publication, and multi-site transport without extending trust to the broader homelab.
+The system is authorized to process, store, and transmit public and lab-operational information in support of DNS and web-service delivery. The system is not authorized to process, store, or transmit controlled information, personally identifiable information, credentials, production configurations, or management-plane data.
 
-## Security requirements
+## Boundary Protection
 
-1. DN42 clients must not initiate connections to MagmaNet, BlueLine, GreenLine, RedLine, household, or management networks.
-2. All DN42 ingress must cross an explicit firewall policy-enforcement point before reaching an approved service.
-3. No route leaking is permitted between DN42 and other routing domains unless documented and explicitly authorized.
-4. Service administration is separate from DN42 client access.
-5. DNS, web, and future services must expose only documented ports and protocols.
-6. The initial system processes public or lab-operational information only. It does not authorize CUI, PII, credentials, production configurations, or management-plane data.
+1. DN42-originated traffic shall traverse an explicit firewall policy-enforcement point before reaching an authorized service.
+2. Routing reachability shall not constitute authorization to access a service or routing domain.
+3. Traffic from DN42 shall not be permitted to initiate sessions to MagmaNet, BlueLine, GreenLine, RedLine, household, management, or other homelab routing domains.
+4. Administrative access shall use a management path separate from DN42 client access.
 
-## Initial authorized services
+## Service Exposure
 
-| Service | Intended function | Exposure |
+| Service | Function | Authorized exposure |
 |---|---|---|
-| Authoritative DNS | Publish service records for the enclave | TCP/UDP 53 only, no recursion |
-| Web service | Landing page or technical documentation | TCP 443 only; HTTP redirects where used |
+| Authoritative DNS | Publishes enclave service records | TCP/UDP 53; recursive resolution is not provided |
+| Web service | Provides enclave landing-page and technical documentation | TCP 443; HTTP redirect may be used where required |
 
-## Routing requirements
+## Routing and Transport
 
-- The DN42 edge advertises only explicitly approved prefixes to external peers.
-- The firewall exports only approved DN42 service prefixes toward the edge.
-- Remote service prefixes are carried only across an explicitly scoped transport domain.
-- No default route or non-DN42 color-network routes are introduced into the DN42 routing domain.
+1. External route advertisement shall be limited to explicitly approved service prefixes.
+2. Internal routing exchange shall be limited to approved DN42 service prefixes and documented remote service prefixes.
+3. Default routes and non-DN42 routing-domain prefixes shall not be introduced into the DN42 routing domain.
+4. Enclave-to-enclave protected connectivity shall use authenticated encryption independent of DN42 transport.
