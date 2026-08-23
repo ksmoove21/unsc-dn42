@@ -10,6 +10,8 @@ This repository contains the system-level documentation supporting the enclave's
 
 - [System Security Plan](docs/system-security-plan.md)
 - [System Boundary](docs/system-boundary.md)
+- [Network Architecture](docs/network-architecture.md)
+- [Addressing Plan](docs/addressing-plan.md)
 - [Security Requirements](docs/requirements.md)
 - [Patch Management Architecture](docs/patch-management.md)
 
