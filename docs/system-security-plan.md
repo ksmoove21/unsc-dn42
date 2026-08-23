@@ -11,7 +11,7 @@
 
 ## System Description
 
-The system provides controlled DNS and web services to DN42 participants. The architecture separates external DN42 transport, boundary-routing functions, firewall policy enforcement, and service workloads.
+The system provides controlled DNS and web services to DN42 participants. The architecture separates external DN42 transport, boundary-routing functions, firewall policy enforcement, service workloads, and enclave-local patch distribution.
 
 ## Security Architecture
 
@@ -21,17 +21,19 @@ DN42 traffic enters through the edge-routing function and is subject to boundary
 
 - Authoritative DNS
 - HTTPS web service
+- Enclave-local Windows update distribution
 
 ## Control Implementation Summary
 
 | Security objective | Implementation approach |
 |---|---|
-| Boundary protection | Firewall policy enforcement for DN42 ingress and egress |
-| Least privilege | Explicit service and routing policy; deny-by-default access |
+| Boundary protection | Firewall policy enforcement for DN42 ingress, egress, and interconnection traffic |
+| Least privilege | Explicit service, update, and routing policy; deny-by-default access |
 | Network segmentation | Dedicated logical routing domain and restricted route exchange |
+| Flaw remediation | Enclave-local WSUS service distributes approved update content to Windows workloads |
 | Secure communications | Authenticated encryption for any enclave-to-enclave protected overlay |
 | Audit and accountability | Logging at defined routing and policy-enforcement points |
 
 ## Authorization Evidence
 
-System authorization evidence consists of current architecture documentation, security requirements, routing and firewall validation records, service configuration validation, and documented risk disposition.
+System authorization evidence consists of current architecture documentation, security requirements, routing and firewall validation records, service and update configuration validation, and documented risk disposition.
