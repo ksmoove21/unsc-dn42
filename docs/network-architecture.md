@@ -70,6 +70,10 @@ Internal eBGP uses private 32-bit ASNs in the format `4200SSSVVV`. `SSS` is the 
 
 The distinct edge ASN for each site and service VPN prevents the same local ASN from appearing on both sides of the Cerberus handoff. Cerberus uses one ASN because PAN-OS BGP is scoped to the shared virtual router.
 
+These are enclave-private ASNs, not additional DN42 registry ASNs. Only the CHR presents registered `AS4242421995` to public DN42 peers.
+
+Existing SD-WAN BGP processes are retained. `c8000v-ny01` currently runs global `AS6420533`, and `isr4331-md01` runs global `AS65302`. Their DN42 eBGP neighbors use `local-as ... no-prepend replace-as` so the enclave-facing peer sees the assigned `4200SSSVVV` ASN without exposing or changing the router's existing global ASN. The NJ C8000V currently has no BGP process; its BGP process and applicable DN42 address families will be created with the SD-WAN handoff.
+
 ## Routing Roles
 
 | Component | Responsibility |
