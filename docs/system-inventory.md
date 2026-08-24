@@ -2,16 +2,17 @@
 
 ## Component Inventory
 
-| Component | Hosting model | Routing domain | Function |
-|---|---|---|---|
-| DN42 edge router | Virtual network appliance | DN42-EXT | External DN42 peering and approved route advertisement |
-| Cerberus | Physical security appliance | DN42-EXT, DN42-WAN | Routing-policy and firewall enforcement |
-| Nexus switching layer | Physical network infrastructure | DN42-ADMIN-HQ, DN42-PUBLIC-HQ | Headquarters VRF gateways and route exchange |
-| Windows DNS server | Virtual machine | DN42-PUBLIC-HQ | Authoritative DNS |
-| Ubuntu HestiaCP server | Virtual machine | DN42-PUBLIC-HQ | HTTPS web service |
-| WSUS server | Virtual machine | DN42-ADMIN-HQ | Enclave-local Windows update distribution |
-| Greenbone server | Virtual machine | DN42-ADMIN-HQ | Vulnerability assessment and reporting |
+| Component | Hosting model | Routing domain | Status | Function |
+|---|---|---|---|---|
+| UNSC-DN42-EDGE02 | MikroTik CHR in Vultr, New Jersey | dn42 VRF | Operational | Public WireGuard and eBGP DN42 edge, aggregate origination, and path selection |
+| Headscarf175 | External transit peer | WireGuard/eBGP | Operational | Full-table DN42 transit |
+| Kioubit | External transit peer | WireGuard/eBGP | Operational | Full-table DN42 transit |
+| iEdon | External transit peer | WireGuard/eBGP | Operational | Full-table DN42 transit |
+| C8000V-NJ01 | Virtual SD-WAN router | DN42 service VPN | Planned DN42 handoff | CHR eBGP neighbor and SD-WAN distribution point |
+| C8000V-NY01 | Cybertron edge router | DN42 service VPN | Planned DN42 extension | NY enclave routing edge |
+| ISR4331-MD01 | Cisco ISR | DN42 service VPN | Planned DN42 extension | MD enclave routing edge |
+| Cerberus | Palo Alto PA-5220 | DN42 security domains | Policy boundary | Firewall inspection and controlled service access |
 
 ## Hosting Dependency
 
-Virtual-machine workloads are hosted on shared virtualization infrastructure. The hypervisor, its management plane, and supporting storage are external supporting services. Workload isolation is achieved through defined virtual networking, DN42 routing domains, firewall policy, and workload-level access controls.
+The CHR is hosted in Vultr and uses a licensed 1 Gbps RouterOS data plane. The Internet-facing WireGuard transport is separate from the dn42 routing domain. SD-WAN carries DN42 only after explicit eBGP and service-VPN policy are implemented.
