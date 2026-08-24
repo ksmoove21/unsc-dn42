@@ -1,27 +1,27 @@
 # Addressing Plan
 
-## Allocation Strategy
+## Registered Aggregates
 
-The enclave allocation is divided into a dedicated infrastructure transit pool and routed service segments. Point-to-point infrastructure handoffs use /31 addressing. Service and administrative segments use /29 addressing.
+| Resource | Value | Use |
+|---|---|---|
+| DN42 ASN | AS4242421995 | Public route origin |
+| IPv4 aggregate | 172.23.105.192/26 | DN42 addressing and controlled external origination |
+| IPv6 aggregate | fd16:2e38:95d2::/48 | DN42 addressing and controlled external origination |
 
-## Segment Plan
+## Current and Planned Infrastructure
 
-| Segment | Prefix length | Purpose |
-|---|---:|---|
-| DN42-TRANSIT | /28 parent allocation | Infrastructure point-to-point address pool |
-| DN42-EXT | /31 | Cerberus to DN42 edge-router handoff |
-| DN42-WAN-HQ | /31 | Cerberus to headquarters SD-WAN handoff |
-| DN42-ADMIN-HQ | /29 | Headquarters administrative systems |
-| DN42-PUBLIC-HQ | /29 | Headquarters DN42-consumable services |
-| DN42-PUBLIC-NJ | /29 | New Jersey cloud service segment |
-| DN42-ADMIN-CYBERTRON | /29 | Cybertron administrative systems |
-| DN42-PUBLIC-CYBERTRON | /29 | Cybertron DN42-consumable services |
-| Reserved | /29 | Future enclave expansion |
+| Prefix or address | Role | Status |
+|---|---|---|
+| 172.23.105.224/29 | DN42 public-service and WireGuard tunnel-address pool | Available for peer and service use |
+| 172.23.105.248/31 | UNSC-DN42-EDGE02 to C8000V-NJ01 DN42 transit | Planned |
+| 172.23.105.248 | CHR transit address | Planned |
+| 172.23.105.249 | C8000V-NJ01 transit address | Planned |
+| 172.23.105.250/31, .252/31, .254/31 | Reserved point-to-point infrastructure links | Reserved |
+| fd16:2e38:95d2::/48 | IPv6 aggregate | Operational registration |
 
 ## Addressing Principles
 
-1. Infrastructure point-to-point links use /31 prefixes.
-2. Each service segment is associated with one defined DN42 zone and routing domain.
-3. Nexus provides the default gateway for headquarters service segments.
-4. The Cybertron firewall provides the default gateway for Cybertron service segments.
-5. The external DN42 edge advertises the approved aggregate; component prefixes remain internal routing constructs.
+1. The CHR advertises only the IPv4 /26 and IPv6 /48 aggregates externally.
+2. /31 prefixes are reserved for routed infrastructure point-to-point links.
+3. Peer tunnel addresses and service addressing use explicit routes over the CHR transit, never automatic route leaking.
+4. Component prefixes are internal constructs. External advertisement remains limited to the registered aggregates.
