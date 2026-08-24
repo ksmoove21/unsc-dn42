@@ -38,6 +38,38 @@ flowchart TB
   EMD <--> S42
 ```
 
+## Confirmed SD-WAN and Firewall Path
+
+The planned external-to-internal path is:
+
+```text
+DN42 -> CHR -> C8000V-NJ VPN 442 -> OMP
+     -> ISR4331 VPN 442 -> eBGP
+     -> Cerberus -> eBGP
+     -> ISR4431 VPN 42 -> OMP
+     -> C8000V-NJ VPN 42
+```
+
+Cerberus is the deliberate policy and routing handoff between the two SD-WAN service VPNs. Direct native route leaking between VPN 442 and VPN 42 is not part of the design. Cerberus uses one virtual router for both BGP interfaces. The interfaces remain in distinct security zones so the transfer is subject to explicit interzone inspection.
+
+SD-WAN site IDs are MD `12`, NJ `102`, and NY `100`.
+
+## ASN Scheme
+
+Internal eBGP uses private 32-bit ASNs in the format `4200SSSVVV`. `SSS` is the zero-padded site ID, `VVV` is the zero-padded VPN ID, and `000` represents a shared site firewall routing process.
+
+| Routing process | ASN |
+|---|---:|
+| Public CHR | `4242421995` |
+| NJ C8000V VPN 442 | `4200102442` |
+| NJ C8000V VPN 42 | `4200102042` |
+| MD ISR4331 VPN 442 | `4200012442` |
+| MD Cerberus shared virtual router | `4200012000` |
+| MD ISR4431 VPN 42 | `4200012042` |
+| NY SD-Edge VPN 42 | `4200100042` |
+
+The distinct edge ASN for each site and service VPN prevents the same local ASN from appearing on both sides of the Cerberus handoff. Cerberus uses one ASN because PAN-OS BGP is scoped to the shared virtual router.
+
 ## Routing Roles
 
 | Component | Responsibility |
@@ -45,7 +77,8 @@ flowchart TB
 | `UNSC-DN42-EDGE02` | Public WireGuard and eBGP edge in Vultr, DN42 path selection, and planned registered-prefix origination |
 | Headscarf175, Kioubit, iEdon | External full-table DN42 transit peers |
 | SD-WAN VPN `442` | Untrusted DN42 transport from the external DN42 domain toward protected enclaves |
-| Cerberus and Chimera `dn42-ext` zones | Firewall termination, inspection, and authorization for VPN 442 ingress |
+| Cerberus `dn42-ext` and internal DN42 zones | eBGP termination, inspection, and controlled route transfer between VPN 442 and VPN 42 |
+| Chimera `dn42-ext` zone | Firewall termination, inspection, and authorization for VPN 442 ingress |
 | SD-WAN VPN `42` | Trusted routed communication among NY, NJ, and MD without hub dependence |
 | Enclave firewall boundaries | Inspection and policy enforcement before traffic reaches protected services or crosses security boundaries |
 
