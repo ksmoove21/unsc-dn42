@@ -56,7 +56,7 @@ SD-WAN site IDs are MD `12`, NJ `102`, and NY `100`.
 
 ## ASN Scheme
 
-Internal eBGP uses private 32-bit ASNs in the format `4200SSSVVV`. `SSS` is the zero-padded site ID, `VVV` is the zero-padded VPN ID, and `000` represents a shared site firewall routing process.
+Internal eBGP uses private 32-bit ASNs in the format `4200SSSVVV`. `SSS` is the zero-padded site ID, `VVV` is the zero-padded VPN ID, and Cerberus retains its established site-level BGP ASN rather than being renumbered into the site/VPN pattern.
 
 | Routing process | ASN |
 |---|---:|
@@ -64,7 +64,7 @@ Internal eBGP uses private 32-bit ASNs in the format `4200SSSVVV`. `SSS` is the 
 | NJ C8000V VPN 442 | `4200102442` |
 | NJ C8000V VPN 42 | `4200102042` |
 | MD ISR4331 VPN 442 | `4200012442` |
-| MD Cerberus shared virtual router | `4200012000` |
+| MD Cerberus shared virtual router | `4200001995` |
 | MD ISR4431 VPN 42 | `4200012042` |
 | NY SD-Edge VPN 42 | `4200100042` |
 
