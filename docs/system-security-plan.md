@@ -13,15 +13,33 @@
 
 The system provides controlled DNS and web services to DN42 participants. The architecture separates external DN42 transport, routed service domains, firewall policy enforcement, service workloads, and enclave-local patch distribution.
 
+The public DN42 edge is `UNSC-DN42-EDGE02`, a MikroTik CHR in Vultr New Jersey. External DN42 traffic is carried toward protected enclaves over SD-WAN VPN 442 and terminates at `dn42-ext` firewall zones before service access is permitted.
+
+SD-WAN VPN 42 is a separate trusted intersite transport used for direct NY, NJ, and MD communication. Trusted transport does not bypass firewall inspection where traffic crosses a security boundary.
+
+## Addressing Architecture
+
+| Prefix | Function | Status |
+|---|---|---|
+| `172.23.105.192/27` | DN42 transit and routing infrastructure | Registered |
+| `172.23.46.0/26` | DN42 service-enclave addressing | Pending DN42 registry PR #7253 |
+| `fd16:2e38:95d2::/48` | DN42 IPv6 addressing | Registered |
+
+The attempted expansion of `172.23.105.192/27` to `/26` was reverted and is not part of the current architecture.
+
 ## Shared Infrastructure and Inherited Controls
 
 In-boundary DNS, web, WSUS, and Greenbone workloads are hosted as virtual machines on shared virtualization infrastructure. The shared hypervisor, its management plane, and supporting storage are external supporting services rather than dedicated components of the authorization boundary. Logical network isolation, workload access controls, platform administration, backup, and recovery capabilities are treated as inherited protections for the hosted system components.
 
 ## Security Architecture
 
-The Nexus switching layer provides the default gateway for headquarters DN42 administrative and public-service routing domains. Each routing domain exchanges only approved routes with Cerberus through dedicated eBGP handoffs. Cerberus provides the security-policy enforcement point between the external DN42 domain, internal service domains, and SD-WAN transport.
+`UNSC-DN42-EDGE02` terminates external WireGuard peerings and performs DN42 route selection. The CHR does not provide unrestricted learned-route transit into protected homelab domains.
 
-At Cybertron, the local firewall provides gateway and policy-enforcement functions for the administrative and public-service routing domains. SD-WAN carries approved DN42 routes between authorized sites but does not establish unrestricted trust between them.
+VPN 442 is the untrusted DN42 external-to-enclave transport. Cerberus and Chimera provide `dn42-ext` zones that terminate this path and enforce inspection and explicit policy before DN42 traffic reaches protected services.
+
+VPN 42 provides trusted intersite connectivity among NY, NJ, and MD without requiring a hub site. Firewall enforcement remains in the path wherever traffic crosses a security boundary.
+
+The DN42 routing domain is isolated from BlueLine, GreenLine, RedLine, management, household, and other non-DN42 routing domains.
 
 ## Authorized Services
 
@@ -34,12 +52,13 @@ At Cybertron, the local firewall provides gateway and policy-enforcement functio
 
 | Security objective | Implementation approach |
 |---|---|
-| Boundary protection | Firewall policy enforcement for DN42 ingress, egress, interconnection, and SD-WAN traffic |
-| Least privilege | Explicit service, update, and route-exchange policy; deny-by-default access |
-| Network segmentation | Dedicated DN42 VRFs, zones, and restricted eBGP route exchange |
+| Boundary protection | `dn42-ext` firewall policy enforcement for VPN 442 ingress and egress |
+| Least privilege | Explicit service and route-exchange policy; deny-by-default access |
+| Network segmentation | Dedicated DN42 VRFs, zones, VPN roles, and restricted route exchange |
+| Intersite transport | VPN 42 provides trusted NY/NJ/MD connectivity while retaining inspection at security boundaries |
 | Flaw remediation | Enclave-local WSUS service distributes approved update content to Windows workloads |
 | Vulnerability monitoring | Greenbone scanning service assesses authorized enclave components and records findings |
-| Secure communications | Authenticated encryption for any enclave-to-enclave protected overlay |
+| Secure communications | Authenticated encryption for protected enclave transport where required |
 | Audit and accountability | Logging at defined routing and policy-enforcement points |
 
 ## Authorization Evidence
