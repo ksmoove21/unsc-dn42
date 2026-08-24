@@ -17,7 +17,7 @@ flowchart TB
   end
   E["UNSC-DN42-EDGE02\nVultr CHR"]
   S442["SD-WAN VPN 442\nDN42 external transport"]
-  S42["SD-WAN VPN 42\ntrusted intersite transport"]
+  S42["SD-WAN VPN 42\ntrusted intersite transport\nplanned enclave use"]
   CBR["Cerberus\ndn42-ext"]
   CHM["Chimera\ndn42-ext"]
   ENY["NY DN42 Enclave"]
@@ -33,9 +33,9 @@ flowchart TB
   CBR -.-> ENJ
   CHM -.-> ENY
   CHM -.-> EMD
-  ENY <-.-> S42
-  ENJ <-.-> S42
-  EMD <-.-> S42
+  ENY <--> S42
+  ENJ <--> S42
+  EMD <--> S42
 ```
 
 ## Routing Roles
@@ -51,7 +51,7 @@ flowchart TB
 
 ## Public Edge Policy
 
-The CHR originates only prefixes currently registered to POWOW95.
+The CHR export policy permits only prefixes currently registered to POWOW95.
 
 Current active POWOW95 prefix advertisements from the CHR: none.
 
