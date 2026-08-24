@@ -9,7 +9,8 @@ The system is authorized to process, store, and transmit public and lab-operatio
 1. DN42-originated traffic shall traverse an explicit firewall policy-enforcement point before reaching an authorized service.
 2. Routing reachability shall not constitute authorization to access a service or routing domain.
 3. Traffic from DN42 shall not be permitted to initiate sessions to MagmaNet, BlueLine, GreenLine, RedLine, household, management, or other homelab routing domains.
-4. Administrative access shall use a management path separate from DN42 client access.
+4. Administrative access shall use the DN42-VPN management path separate from DN42 client access.
+5. A dual-homed update service shall not route traffic between the DN42 administrative domain and its external update-egress domain.
 
 ## Service Exposure
 
