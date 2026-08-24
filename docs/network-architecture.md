@@ -4,7 +4,7 @@
 
 `UNSC-DN42-EDGE02`, a MikroTik CHR in Vultr New Jersey, is the operational public DN42 edge. It maintains three established WireGuard/eBGP full-table peers in the `dn42` VRF.
 
-The current registered IPv4 transit prefix is `172.23.105.192/27`. The CHR ownership list is corrected to that exact prefix. The CHR-to-NJ C8000V eBGP handoff is operational over `172.23.105.220/31`, and the C8000V receives the DN42 table in VPN 442. The prefix remains intentionally unoriginated until the remaining OMP, firewall, and downstream service route exist. A separate `172.23.46.0/26` service-network request is pending in DN42 registry PR #7253 and is not originated until that allocation is merged. IPv6 enclave implementation is deferred.
+The current registered IPv4 transit prefix is `172.23.105.192/27`. The CHR ownership list is corrected to that exact prefix. The CHR-to-NJ C8000V eBGP handoff is operational over `172.23.105.220/31`. The C8000V advertises the DN42 table into OMP for VPN 442, the MD ISR4331 redistributes the routes to eBGP, and Cerberus installed 1,359 active BGP routes through `172.23.105.192` during initial verification. The prefix remains intentionally unoriginated until the VPN 42 return side and downstream service route exist. A separate `172.23.46.0/26` service-network request is pending in DN42 registry PR #7253 and is not originated until that allocation is merged. IPv6 enclave implementation is deferred.
 
 ## Logical Architecture
 
@@ -106,7 +106,7 @@ The CHR remains attached to the shared Vultr `DMZ` firewall group by operator de
 
 ### VPN 442
 
-VPN `442` is the DN42 external-to-enclave transport. The CHR-to-NJ C8000V eBGP handoff is operational, with 1,353 received prefixes observed during initial verification. The OMP continuation, Maryland firewall handoff, and end-to-end VPN 442 path remain in progress. Traffic carried in VPN 442 is untrusted and must terminate in a `dn42-ext` firewall zone before entering a protected enclave. Both Cerberus and Chimera provide this boundary.
+VPN `442` is the DN42 external-to-enclave transport. The CHR-to-NJ C8000V eBGP handoff, VPN 442 OMP carriage to Maryland, and ISR4331-to-Cerberus eBGP handoff are operational. Cerberus installed 1,359 active BGP routes through `172.23.105.192`. The VPN 42 continuation and end-to-end service path remain in progress. Traffic carried in VPN 442 is untrusted and must terminate in a `dn42-ext` firewall zone before entering a protected enclave. Both Cerberus and Chimera provide this boundary.
 
 Routing reachability over VPN 442 does not itself authorize access to a service.
 
