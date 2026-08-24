@@ -30,5 +30,6 @@ The enclave comprises four defined security zones:
 | DN42-ADMIN | Administrative systems and service-management access |
 | DN42-PUBLIC | DN42-consumable services |
 | DN42-WAN | Authorized SD-WAN transport |
+| DN42-VPN | GlobalProtect administrative tunnel termination |
 
 The DN42 enclave is logically isolated from MagmaNet, BlueLine, GreenLine, RedLine, household, management, and other homelab routing domains. Routes and traffic are exchanged only through explicitly authorized security and routing policy.
