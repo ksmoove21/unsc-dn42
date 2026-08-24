@@ -24,6 +24,7 @@ At Cybertron, the local firewall provides gateway and policy-enforcement functio
 - Authoritative DNS
 - HTTPS web service
 - Enclave-local Windows update distribution
+- Vulnerability assessment and reporting
 
 ## Control Implementation Summary
 
@@ -33,6 +34,7 @@ At Cybertron, the local firewall provides gateway and policy-enforcement functio
 | Least privilege | Explicit service, update, and route-exchange policy; deny-by-default access |
 | Network segmentation | Dedicated DN42 VRFs, zones, and restricted eBGP route exchange |
 | Flaw remediation | Enclave-local WSUS service distributes approved update content to Windows workloads |
+| Vulnerability monitoring | Greenbone scanning service assesses authorized enclave components and records findings |
 | Secure communications | Authenticated encryption for any enclave-to-enclave protected overlay |
 | Audit and accountability | Logging at defined routing and policy-enforcement points |
 
