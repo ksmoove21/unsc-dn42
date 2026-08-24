@@ -13,9 +13,9 @@
 
 The system provides controlled DNS and web services to DN42 participants. The architecture separates external DN42 transport, routed service domains, firewall policy enforcement, service workloads, and enclave-local patch distribution.
 
-The public DN42 edge is `UNSC-DN42-EDGE02`, a MikroTik CHR in Vultr New Jersey. External DN42 traffic is carried toward protected enclaves over SD-WAN VPN 442 and terminates at `dn42-ext` firewall zones before service access is permitted.
+The public DN42 edge is `UNSC-DN42-EDGE02`, a MikroTik CHR in Vultr New Jersey. Its three external WireGuard/eBGP peerings are operational. The registered IPv4 `/27` is not yet originated because the CHR-to-C8000V SD-WAN transit and matching downstream route are not installed.
 
-SD-WAN VPN 42 is a separate trusted intersite transport used for direct NY, NJ, and MD communication. Trusted transport does not bypass firewall inspection where traffic crosses a security boundary.
+In the target architecture, external DN42 traffic is carried toward protected enclaves over SD-WAN VPN 442 and terminates at `dn42-ext` firewall zones before service access is permitted. SD-WAN VPN 42 is the separate trusted intersite transport intended for direct NY, NJ, and MD communication. Trusted transport does not bypass firewall inspection where traffic crosses a security boundary.
 
 ## Addressing Architecture
 
@@ -23,7 +23,7 @@ SD-WAN VPN 42 is a separate trusted intersite transport used for direct NY, NJ, 
 |---|---|---|
 | `172.23.105.192/27` | DN42 transit and routing infrastructure | Registered |
 | `172.23.46.0/26` | DN42 service-enclave addressing | Pending DN42 registry PR #7253 |
-| `fd16:2e38:95d2::/48` | DN42 IPv6 addressing | Registered |
+| `fd16:2e38:95d2::/48` | DN42 IPv6 addressing; enclave implementation deferred | Registered |
 
 The attempted expansion of `172.23.105.192/27` to `/26` was reverted and is not part of the current architecture.
 
@@ -32,6 +32,8 @@ The attempted expansion of `172.23.105.192/27` to `/26` was reverted and is not 
 In-boundary DNS, web, WSUS, and Greenbone workloads are hosted as virtual machines on shared virtualization infrastructure. The shared hypervisor, its management plane, and supporting storage are external supporting services rather than dedicated components of the authorization boundary. Logical network isolation, workload access controls, platform administration, backup, and recovery capabilities are treated as inherited protections for the hosted system components.
 
 ## Security Architecture
+
+The CHR retains the shared Vultr `DMZ` firewall group as its upstream Internet-interface filter by operator decision.
 
 `UNSC-DN42-EDGE02` terminates external WireGuard peerings and performs DN42 route selection. The CHR does not provide unrestricted learned-route transit into protected homelab domains.
 
