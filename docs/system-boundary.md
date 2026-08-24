@@ -6,30 +6,24 @@ UNSC Delta November 42 Service Enclave
 
 ## System Purpose
 
-The system provides controlled, DN42-reachable network services. The enclave supports service publication, inter-domain routing, protected transport, and security-policy enforcement.
+The system provides controlled DN42-reachable services and a deliberately segmented DN42 transport design. It supports external eBGP peering, protected route carriage, firewall inspection, and service delivery to approved enclaves.
 
 ## Authorization Boundary
 
-The authorization boundary comprises the logical DN42 routing instances, associated interfaces and controlled handoffs, Nexus and firewall routing constructs supporting the DN42 enclave, boundary firewall policy and logging functions, approved service networks, and workloads providing authorized DN42 services.
+The boundary includes UNSC-DN42-EDGE02, its dn42 VRF and WireGuard peers, approved DN42 aggregates, the C8000V-NJ01 DN42 handoff when implemented, DN42 service-VPN route exchange, enclave routing constructs, and firewall policy/logging functions that control entry to protected services.
 
-DN42 peer tunnels and their underlying external transport terminate at the system boundary but are not components of the system. Shared virtualization infrastructure hosts in-boundary workloads but is an external supporting service; its platform-management and hosting protections are inherited by those workloads.
+The public Internet underlay used for WireGuard is a supporting transport, not part of the DN42 routing plane. External transit peers terminate at the CHR boundary. They do not receive access to non-DN42 homelab routing domains.
 
 ## External Interfaces and Interconnections
 
-DN42 connectivity terminates on the enclave edge-routing function. Traffic traverses Cerberus policy enforcement before entering a headquarters service routing domain or approved SD-WAN transport.
-
-Headquarters DN42 administrative and public-service routing domains terminate at Nexus default gateways and exchange routes with Cerberus through separate eBGP handoffs. Cybertron hosts corresponding routing domains behind its local firewall.
+| Interface | Purpose | Status |
+|---|---|---|
+| CHR Internet interface | WireGuard outer transport to external peers | Operational |
+| CHR dn42 VRF | Decrypted peer traffic and eBGP control plane | Operational |
+| CHR to C8000V-NJ01 172.23.105.248/31 | DN42 eBGP transit and SD-WAN handoff | Planned |
+| SD-WAN service VPN | Restricted DN42 route carriage to approved enclaves | Planned |
+| Enclave firewall boundaries | Policy enforcement for NY, MD, and cloud services | Required for service access |
 
 ## Internal Segmentation
 
-The enclave comprises four defined security zones:
-
-| Zone | Function |
-|---|---|
-| DN42-EXT | External DN42 edge connectivity |
-| DN42-ADMIN | Administrative systems and service-management access |
-| DN42-PUBLIC | DN42-consumable services |
-| DN42-WAN | Authorized SD-WAN transport |
-| DN42-VPN | GlobalProtect administrative tunnel termination |
-
-The DN42 enclave is logically isolated from MagmaNet, BlueLine, GreenLine, RedLine, household, management, and other homelab routing domains. Routes and traffic are exchanged only through explicitly authorized security and routing policy.
+DN42 is isolated from BlueLine, GreenLine, RedLine, management, household, and other non-DN42 domains. Entry to a protected enclave requires explicit route exchange and firewall authorization. There is no implicit route leaking between DN42 and other routing domains.
