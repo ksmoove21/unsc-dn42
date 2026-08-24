@@ -53,6 +53,6 @@ ISR4331 VPN 442 -> eBGP -> Cerberus -> eBGP -> ISR4431 VPN 42
 
 Cerberus uses one virtual router for both handoff interfaces. The VPN 442-facing interface is in `dn42-ext`; the VPN 42-facing interface uses a separate internal DN42 security zone. This keeps the routing table shared while forcing traffic through explicit interzone inspection. No direct SD-WAN route leak between VPN 442 and VPN 42 is authorized.
 
-The associated private ASNs are MD VPN 442 `AS4200012442`, Cerberus `AS4200012000`, and MD VPN 42 `AS4200012042`. The confirmed site IDs are MD `12`, NJ `102`, and NY `100`.
+The associated private ASNs are MD VPN 442 `AS4200012442`, Cerberus `AS4200001995`, and MD VPN 42 `AS4200012042`. The confirmed site IDs are MD `12`, NJ `102`, and NY `100`.
 
 There is no implicit route leaking between DN42 and other routing domains. The registered IPv4 `/27` is not currently originated because its CHR-to-C8000V downstream transit and route are not yet installed.
