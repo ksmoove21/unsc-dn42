@@ -2,11 +2,11 @@
 
 ## Current implementation status
 
-External WireGuard/eBGP peerings on `UNSC-DN42-EDGE02` are operational. The CHR receives DN42 routes from Headscarf175, Kioubit, and iEdon. The CHR-to-NJ C8000V eBGP handoff is also operational over `172.23.105.220/31`; the C8000V received 1,353 DN42 prefixes in VPN 442 during initial verification. The downstream OMP path, Maryland firewall handoff, VPN 42 enclave use, service-prefix origination, and IPv6 enclave carriage remain planned.
+External WireGuard/eBGP peerings on `UNSC-DN42-EDGE02` are operational. The CHR receives DN42 routes from Headscarf175, Kioubit, and iEdon. The CHR-to-NJ C8000V eBGP handoff is operational over `172.23.105.220/31`. VPN 442 OMP carriage to Maryland and the ISR4331-to-Cerberus eBGP handoff are also operational; Cerberus installed 1,359 active BGP routes through `172.23.105.192` during initial verification. The Cerberus-to-ISR4431 VPN 42 continuation, service-prefix origination, and IPv6 enclave carriage remain planned.
 
 ## Flow DF-01: External DN42 Transit to Protected Enclave
 
-**Status:** CHR-to-NJ C8000V eBGP segment operational; remaining path not yet operational end to end.
+**Status:** Operational through Cerberus ingress; VPN 42 continuation and service delivery are not yet operational end to end.
 
 | Field | Definition |
 |---|---|
