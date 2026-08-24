@@ -1,8 +1,10 @@
 # Network Architecture
 
-## Status
+## Current State
 
-The Vultr CHR is operational as the public DN42 edge. The CHR-to-C8000V-NJ01 eBGP handoff and SD-WAN extension are the next implementation phase.
+`UNSC-DN42-EDGE02`, a MikroTik CHR in Vultr New Jersey, is the operational public DN42 edge. It maintains three live WireGuard/eBGP full-table peers and originates only registered POWOW95 DN42 prefixes.
+
+The current registered IPv4 transit prefix is `172.23.105.192/27`. A separate `172.23.46.0/26` service-network request is pending in DN42 registry PR #7253 and is not originated until that allocation is merged.
 
 ## Logical Architecture
 
@@ -14,50 +16,70 @@ flowchart TB
     I["iEdon Net us-sjc\nAS4242422189"]
   end
   E["UNSC-DN42-EDGE02\nVultr CHR"]
-  N["C8000V-NJ01\nNJ SD-WAN / DN42 handoff"]
-  S["SD-WAN"]
-  NY["C8000V-NY01\nCybertron edge router"]
-  MD["ISR4331-MD01\nMD edge router"]
-  C["DN42 UNSC Cloud Enclave"]
-  NYE["DN42 UNSC NY Enclave"]
-  MDE["DN42 UNSC MD Enclave"]
+  S442["SD-WAN VPN 442\nDN42 external transport"]
+  S42["SD-WAN VPN 42\ntrusted intersite transport"]
+  CBR["Cerberus\ndn42-ext"]
+  CHM["Chimera\ndn42-ext"]
+  ENY["NY DN42 Enclave"]
+  ENJ["NJ DN42 Enclave"]
+  EMD["MD DN42 Enclave"]
+
   H -. "WireGuard + eBGP" .-> E
   K -. "WireGuard + eBGP" .-> E
   I -. "WireGuard + eBGP" .-> E
-  E -. "eBGP DN42 transit" .-> N
-  N -. "logical DN42 transit" .-> C
-  N -. "logical DN42 transit" .-> S
-  S -.-> NY
-  S -.-> MD
-  NY -.-> NYE
-  MD -.-> MDE
+  E --> S442
+  S442 --> CBR
+  S442 --> CHM
+  CBR --> ENJ
+  CHM --> ENY
+  CHM --> EMD
+  ENY <--> S42
+  ENJ <--> S42
+  EMD <--> S42
 ```
 
 ## Routing Roles
 
-| Component | Status | Responsibility |
-|---|---|---|
-| UNSC-DN42-EDGE02 | Operational | Public WireGuard and eBGP edge in Vultr, DN42 route selection, and approved aggregate origination |
-| Headscarf175, Kioubit, iEdon | Operational | Full-table eBGP transit peers |
-| C8000V-NJ01 | Planned handoff | eBGP neighbor to the CHR and DN42 route carriage into the SD-WAN service VPN |
-| SD-WAN | Planned DN42 extension | Controlled transport to approved enclaves |
-| C8000V-NY01 and ISR4331-MD01 | Planned DN42 edge roles | Enclave access through their local routing and firewall boundaries |
-| Enclave firewalls | Current and planned policy boundary | Inspect and explicitly authorize traffic entering protected services |
+| Component | Responsibility |
+|---|---|
+| `UNSC-DN42-EDGE02` | Public WireGuard and eBGP edge in Vultr, DN42 path selection, and registered-prefix origination |
+| Headscarf175, Kioubit, iEdon | External full-table DN42 transit peers |
+| SD-WAN VPN `442` | Untrusted DN42 transport from the external DN42 domain toward protected enclaves |
+| Cerberus and Chimera `dn42-ext` zones | Firewall termination, inspection, and authorization for VPN 442 ingress |
+| SD-WAN VPN `42` | Trusted routed communication among NY, NJ, and MD without hub dependence |
+| Enclave firewall boundaries | Inspection and policy enforcement before traffic reaches protected services or crosses security boundaries |
 
 ## Public Edge Policy
 
-UNSC-DN42-EDGE02 originates only the registered aggregates:
+The CHR originates only prefixes currently registered to POWOW95.
 
-- 172.23.105.192/26
-- fd16:2e38:95d2::/48
+Current registered advertisements include:
 
-It does not export arbitrary learned routes or provide unrestricted transit. Route selection for CHR-originated traffic uses higher local preference for Headscarf175, then Kioubit, then iEdon. This ranking reflects the measured Vultr underlay RTT at the time of deployment and is not a per-destination measurement system.
+- `172.23.105.192/27`
+- `fd16:2e38:95d2::/48`
 
-The existing home C8000V DN42 path remains a later fallback design after the CHR-to-C8000V-NJ01 interconnection is built. Until then, it is documented as a separate legacy deployment rather than an active part of the CHR transport path.
+`172.23.46.0/26` is a service-network request and is not considered an active registered advertisement until DN42 registry PR #7253 merges.
+
+The CHR does not export arbitrary learned routes or provide unrestricted transit. For CHR-originated DN42 traffic, local preference is ordered Headscarf175, Kioubit, then iEdon based on measured Vultr underlay RTT.
+
+## SD-WAN Security Roles
+
+### VPN 442
+
+VPN `442` is the DN42 external-to-enclave transport. Traffic carried in VPN 442 is untrusted and must terminate in a `dn42-ext` firewall zone before entering a protected enclave. Both Cerberus and Chimera provide this boundary.
+
+Routing reachability over VPN 442 does not itself authorize access to a service.
+
+### VPN 42
+
+VPN `42` provides trusted intersite routing among NY, NJ, and MD. Its purpose is to allow the sites to communicate directly without forcing one site to operate as a hub.
+
+The transport is trusted relative to external DN42 ingress, but firewall inspection still applies wherever traffic crosses a security boundary.
 
 ## Isolation Principles
 
-1. WireGuard Internet underlay remains separate from the DN42 routing domain.
-2. DN42 route exchange into SD-WAN is explicit and limited to the DN42 service VPN.
-3. Protected NY, MD, and cloud enclave traffic must cross the applicable firewall policy boundary.
-4. DN42 routes are not implicitly leaked into BlueLine, GreenLine, RedLine, management, or other non-DN42 domains.
+1. The WireGuard Internet underlay remains separate from the DN42 routing domain.
+2. VPN 442 carries external DN42 traffic only into explicit `dn42-ext` policy boundaries.
+3. VPN 42 provides trusted intersite routing but does not bypass firewall inspection.
+4. DN42 routes are not implicitly leaked into BlueLine, GreenLine, RedLine, management, household, or other non-DN42 domains.
+5. Transit addressing and service addressing remain separate.
