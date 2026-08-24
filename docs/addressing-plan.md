@@ -7,7 +7,7 @@
 | DN42 ASN | `AS4242421995` | Public route origin | Registered |
 | IPv4 transit prefix | `172.23.105.192/27` | Transit, peer-facing, and infrastructure addressing | Registered |
 | IPv4 service prefix | `172.23.46.0/26` | DN42-facing service enclave addressing | Pending DN42 registry PR #7253 |
-| IPv6 aggregate | `fd16:2e38:95d2::/48` | DN42 IPv6 addressing and controlled external origination | Registered |
+| IPv6 aggregate | `fd16:2e38:95d2::/48` | Registered IPv6 space; enclave implementation deferred | Registered |
 
 The attempted expansion of `172.23.105.192/27` to `172.23.105.192/26` was reverted because `172.23.105.224/27` was allocated to another DN42 participant immediately before the expansion merged. The transit prefix therefore remains `172.23.105.192/27`.
 
@@ -23,9 +23,20 @@ The IPv4 design intentionally separates infrastructure from services.
 
 `172.23.46.0/26` is the dedicated DN42 service-network request. It is not treated as registered or externally originated until DN42 registry PR #7253 is merged.
 
+### Current infrastructure assignments
+
+| Function | Address | State |
+|---|---|---|
+| iEdon local WireGuard/BGP address | `172.23.105.219/32` | Operational |
+| CHR side of SD-WAN transit | `172.23.105.220/31` | Planned |
+| C8000V side of SD-WAN transit | `172.23.105.221/31` | Planned |
+| CHR BGP router ID | `172.23.105.222` | Operational |
+
+The CHR ownership list contains the exact `172.23.105.192/27`. No matching downstream route exists yet because the SD-WAN transit is not configured, so the prefix is intentionally not originated.
+
 ### IPv6
 
-`fd16:2e38:95d2::/48` remains the registered DN42 IPv6 allocation.
+`fd16:2e38:95d2::/48` remains the registered DN42 IPv6 allocation. IPv6 carriage into the enclave is deferred while the initial enclave implementation focuses on IPv4.
 
 ## Addressing Principles
 
