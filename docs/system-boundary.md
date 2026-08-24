@@ -12,7 +12,7 @@ The system provides controlled, DN42-reachable network services. The enclave sup
 
 The authorization boundary comprises the logical DN42 routing instances, associated interfaces and controlled handoffs, Nexus and firewall routing constructs supporting the DN42 enclave, boundary firewall policy and logging functions, approved service networks, and workloads providing authorized DN42 services.
 
-DN42 peer tunnels and their underlying external transport terminate at the system boundary but are not components of the system.
+DN42 peer tunnels and their underlying external transport terminate at the system boundary but are not components of the system. Shared virtualization infrastructure hosts in-boundary workloads but is an external supporting service; its platform-management and hosting protections are inherited by those workloads.
 
 ## External Interfaces and Interconnections
 
