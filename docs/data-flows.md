@@ -19,16 +19,15 @@ External WireGuard/eBGP peerings on `UNSC-DN42-EDGE02` are operational. The CHR 
 ### Path
 
 ```mermaid
-flowchart LR
-  P["DN42 participant"] --> T["Transit peer"]
-  T --> E["UNSC-DN42-EDGE02"]
-  E --> V["SD-WAN VPN 442"]
-  V --> Z["dn42-ext firewall zone"]
-  Z --> F["Inspection / policy"]
-  F --> W["Authorized DN42 service"]
+flowchart TB
+  A["DN42 participant and transit"] --> B["CHR and NJ VPN 442"]
+  B --> C["OMP to MD VPN 442"]
+  C --> D["Cerberus firewall handoff"]
+  D --> E["MD VPN 42 and OMP"]
+  E --> F["Authorized DN42 service"]
 ```
 
-VPN 442 is the untrusted DN42 external-to-enclave transport. External DN42 traffic does not enter a protected enclave without traversing the applicable `dn42-ext` firewall boundary. Cerberus and Chimera provide this policy boundary for their respective protected environments.
+The detailed Maryland handoff is `ISR4331 VPN 442 -> eBGP -> Cerberus -> eBGP -> ISR4431 VPN 42`. Cerberus uses one virtual router but separate external and internal DN42 security zones. VPN 442 is the untrusted DN42 external-to-enclave transport. External DN42 traffic does not enter VPN 42 or a protected enclave without traversing Cerberus inspection. This is a firewall-mediated exchange, not a direct SD-WAN route leak.
 
 ## Flow DF-02: Enclave-Originated DN42 Traffic
 
@@ -45,12 +44,12 @@ VPN 442 is the untrusted DN42 external-to-enclave transport. External DN42 traff
 ### Path
 
 ```mermaid
-flowchart LR
-  W["Authorized enclave workload"] --> F["Enclave firewall"]
-  F --> V["SD-WAN VPN 442"]
+flowchart TB
+  W["Authorized enclave workload"] --> A["VPN 42 and OMP to MD"]
+  A --> F["Cerberus firewall handoff"]
+  F --> V["VPN 442 and OMP to NJ"]
   V --> E["UNSC-DN42-EDGE02"]
-  E --> T["Selected DN42 transit peer"]
-  T --> D["DN42 destination"]
+  E --> D["Selected DN42 transit peer"]
 ```
 
 The ordered transit peers use observed CHR underlay latency as a static preference input. The CHR is not used as unrestricted learned-route transit.
