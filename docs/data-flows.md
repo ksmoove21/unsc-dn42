@@ -1,6 +1,12 @@
 # Data Flow Architecture
 
+## Current implementation status
+
+External WireGuard/eBGP peerings on `UNSC-DN42-EDGE02` are operational. The CHR receives DN42 routes from Headscarf175, Kioubit, and iEdon. The CHR-to-C8000V handoff, VPN 442 enclave path, VPN 42 enclave use, service-prefix origination, and IPv6 enclave carriage remain planned.
+
 ## Flow DF-01: External DN42 Transit to Protected Enclave
+
+**Status:** Planned, not yet operational end to end.
 
 | Field | Definition |
 |---|---|
@@ -26,6 +32,8 @@ VPN 442 is the untrusted DN42 external-to-enclave transport. External DN42 traff
 
 ## Flow DF-02: Enclave-Originated DN42 Traffic
 
+**Status:** Planned, pending the CHR-to-C8000V transit and VPN 442 service path.
+
 | Field | Definition |
 |---|---|
 | Source | Authorized DN42 enclave workload |
@@ -48,6 +56,8 @@ flowchart LR
 The ordered transit peers use observed CHR underlay latency as a static preference input. The CHR is not used as unrestricted learned-route transit.
 
 ## Flow DF-03: Trusted Intersite DN42 Communication
+
+**Status:** Planned for DN42 enclave use.
 
 | Field | Definition |
 |---|---|
