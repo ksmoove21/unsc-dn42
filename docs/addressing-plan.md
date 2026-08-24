@@ -1,27 +1,36 @@
 # Addressing Plan
 
-## Registered Aggregates
+## Registry Resources
 
-| Resource | Value | Use |
-|---|---|---|
-| DN42 ASN | AS4242421995 | Public route origin |
-| IPv4 aggregate | 172.23.105.192/26 | DN42 addressing and controlled external origination |
-| IPv6 aggregate | fd16:2e38:95d2::/48 | DN42 addressing and controlled external origination |
+| Resource | Value | Use | Status |
+|---|---|---|---|
+| DN42 ASN | `AS4242421995` | Public route origin | Registered |
+| IPv4 transit prefix | `172.23.105.192/27` | Transit, peer-facing, and infrastructure addressing | Registered |
+| IPv4 service prefix | `172.23.46.0/26` | DN42-facing service enclave addressing | Pending DN42 registry PR #7253 |
+| IPv6 aggregate | `fd16:2e38:95d2::/48` | DN42 IPv6 addressing and controlled external origination | Registered |
 
-## Current and Planned Infrastructure
+The attempted expansion of `172.23.105.192/27` to `172.23.105.192/26` was reverted because `172.23.105.224/27` was allocated to another DN42 participant immediately before the expansion merged. The transit prefix therefore remains `172.23.105.192/27`.
 
-| Prefix or address | Role | Status |
-|---|---|---|
-| 172.23.105.224/29 | DN42 public-service and WireGuard tunnel-address pool | Available for peer and service use |
-| 172.23.105.248/31 | UNSC-DN42-EDGE02 to C8000V-NJ01 DN42 transit | Planned |
-| 172.23.105.248 | CHR transit address | Planned |
-| 172.23.105.249 | C8000V-NJ01 transit address | Planned |
-| 172.23.105.250/31, .252/31, .254/31 | Reserved point-to-point infrastructure links | Reserved |
-| fd16:2e38:95d2::/48 | IPv6 aggregate | Operational registration |
+## Addressing Roles
+
+The IPv4 design intentionally separates infrastructure from services.
+
+### Transit network
+
+`172.23.105.192/27` is reserved for DN42 routing infrastructure, peer-facing addressing, and routed handoffs. It is not used as the general service-address pool.
+
+### Service network
+
+`172.23.46.0/26` is the dedicated DN42 service-network request. It is not treated as registered or externally originated until DN42 registry PR #7253 is merged.
+
+### IPv6
+
+`fd16:2e38:95d2::/48` remains the registered DN42 IPv6 allocation.
 
 ## Addressing Principles
 
-1. The CHR advertises only the IPv4 /26 and IPv6 /48 aggregates externally.
-2. /31 prefixes are reserved for routed infrastructure point-to-point links.
-3. Peer tunnel addresses and service addressing use explicit routes over the CHR transit, never automatic route leaking.
-4. Component prefixes are internal constructs. External advertisement remains limited to the registered aggregates.
+1. Transit and service addressing remain separate so routing infrastructure does not consume service-space assignments.
+2. Only prefixes registered to `POWOW95-MNT` may be originated externally.
+3. Point-to-point and peer-facing addresses are drawn from the registered transit network.
+4. Service workloads use the dedicated service prefix after registry approval.
+5. Internal component prefixes are not automatically leaked into other homelab routing domains.
