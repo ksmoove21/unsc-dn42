@@ -13,6 +13,10 @@
 
 The system provides controlled DNS and web services to DN42 participants. The architecture separates external DN42 transport, routed service domains, firewall policy enforcement, service workloads, and enclave-local patch distribution.
 
+## Shared Infrastructure and Inherited Controls
+
+In-boundary DNS, web, WSUS, and Greenbone workloads are hosted as virtual machines on shared virtualization infrastructure. The shared hypervisor, its management plane, and supporting storage are external supporting services rather than dedicated components of the authorization boundary. Logical network isolation, workload access controls, platform administration, backup, and recovery capabilities are treated as inherited protections for the hosted system components.
+
 ## Security Architecture
 
 The Nexus switching layer provides the default gateway for headquarters DN42 administrative and public-service routing domains. Each routing domain exchanges only approved routes with Cerberus through dedicated eBGP handoffs. Cerberus provides the security-policy enforcement point between the external DN42 domain, internal service domains, and SD-WAN transport.
