@@ -6,7 +6,11 @@
 
 The registered IPv4 allocation remains `172.23.105.192/27`. After review of DN42 IPv4 allocation policy, the enclave no longer treats native DN42 IPv4 as general-purpose addressing for every routed or administrative segment. DN42 IPv4 is concentrated on public service zones, peering identities, and selected DN42-facing transit links. Administrative and client networks use private IPv4 and may use NAT when they need to consume DN42 services.
 
-The CHR-to-NJ C8000V eBGP handoff is operational over `172.23.105.220/31`. The C8000V advertises the DN42 table into OMP for VPN 442, the MD ISR4331 redistributes the routes to eBGP, and Cerberus installed 1,359 active BGP routes through `172.23.105.192` during initial verification. The owned `/27` remains intentionally unoriginated until the VPN 42 return side and downstream public-service routes exist. IPv6 enclave implementation is deferred.
+The CHR-to-NJ C8000V eBGP handoff is operational over `172.23.105.220/31`. The C8000V advertises the DN42 table into OMP for VPN 442, the MD ISR4331 redistributes the routes to eBGP, and Cerberus carries the routes across the firewall-mediated boundary into MD VPN 42. After the Site-of-Origin attribute was normalized at that boundary, MD originated the full table into OMP and NJ VPN 42 installed the DN42 routes through MD system IP `10.100.0.9`.
+
+The CHR locally originates `172.23.105.192/27` while using forwarding reachability toward the NJ C8000V. This preserves `AS4242421995` as the public origin and prevents enclave-private ASNs from appearing in external advertisements. IPv6 enclave implementation remains deferred.
+
+The current public-edge routing and control baseline is documented in [Public Edge Configuration](public-edge-configuration.md).
 
 Policy reference: https://www.dn42.dev/Policies
 
@@ -60,7 +64,7 @@ flowchart TB
 | Prefix / address | Function | State |
 |---|---|---|
 | `172.23.105.192/31` | MD ISR4331 ↔ Cerberus VPN 442 transit | Operational |
-| `172.23.105.194/31` | MD Cerberus ↔ ISR4331 VPN 42 transit | Planned / in progress |
+| `172.23.105.194/31` | MD Cerberus ↔ ISR4331 VPN 42 transit | Operational |
 | `172.23.105.196/31` | NY edge ↔ Chimera DN42-facing/NAT transit | Planned |
 | `172.23.105.198/31` | Cerberus ↔ Nexus public-service handoff | Planned |
 | `172.23.105.200/29` | MD `dn42-public` | Planned |
