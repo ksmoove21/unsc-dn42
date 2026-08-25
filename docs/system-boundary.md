@@ -10,9 +10,9 @@ The system provides controlled DN42-reachable services and a deliberately segmen
 
 ## Authorization Boundary
 
-The current operational boundary includes `UNSC-DN42-EDGE02`, its `dn42` VRF, three established WireGuard/eBGP peers, the NJ C8000V VPN 442 handoff, OMP carriage to Maryland, the ISR4331-to-Cerberus eBGP handoff, and the registered POWOW95 DN42 resources.
+The current operational boundary includes `UNSC-DN42-EDGE02`, its separated Internet, `dn42`, and management routing domains, three established WireGuard/eBGP peers, the NJ C8000V VPN 442 handoff, OMP carriage to Maryland, both ISR4331-to-Cerberus eBGP handoffs, and VPN 42 OMP propagation back to New Jersey. It also includes the registered POWOW95 DN42 resources and the firewall policy required to normalize routing attributes at the deliberate VPN 442-to-VPN 42 service boundary.
 
-The target boundary additionally includes the Cerberus-to-ISR4331 VPN 42 continuation, trusted intersite transport, the MD and NJ native DN42-public service zones, private/admin zones, NAT for private DN42 consumers, and the associated firewall policy and logging functions.
+The remaining target boundary includes the MD and NJ native DN42-public service zones, NY private/admin access through Chimera, NAT for private DN42 consumers, and the associated service-level firewall policy and logging functions.
 
 The public Internet underlay used for WireGuard is a supporting transport, not part of the DN42 routing plane. External transit peers terminate at the CHR boundary and do not receive access to non-DN42 homelab routing domains.
 
