@@ -4,26 +4,32 @@
 
 | Component | Hosting model | Routing domain | Status | Function |
 |---|---|---|---|---|
-| `UNSC-DN42-EDGE02` | MikroTik CHR in Vultr, New Jersey | `dn42` VRF | Operational edge | Public WireGuard and eBGP DN42 edge and path selection; owned-prefix origination pending downstream transit |
+| `UNSC-DN42-EDGE02` | MikroTik CHR in Vultr, New Jersey | `dn42` VRF | Operational edge | Public WireGuard and eBGP DN42 edge, route selection, peering identity, and registered-prefix origination when downstream service reachability exists |
 | Headscarf175 | External transit peer | WireGuard/eBGP | Operational | Full-table DN42 transit |
 | Kioubit | External transit peer | WireGuard/eBGP | Operational | Full-table DN42 transit |
 | iEdon | External transit peer | WireGuard/eBGP | Operational | Full-table DN42 transit |
-| SD-WAN VPN `442` | Catalyst SD-WAN transport | DN42 external transport | Planned for DN42 | Will carry untrusted DN42 traffic toward protected enclaves |
-| SD-WAN VPN `42` | Catalyst SD-WAN transport | Trusted intersite transport | Planned for DN42 enclave use | Direct NY, NJ, and MD routing without hub dependence |
-| Cerberus | Palo Alto PA-5220 | `dn42-ext` and protected DN42 domains | Policy boundary | DN42 ingress inspection and controlled service access |
-| Chimera | Firewall boundary | `dn42-ext` and protected DN42 domains | Policy boundary | DN42 ingress inspection and controlled service access |
-| NY, NJ, and MD DN42 enclaves | Protected service environments | DN42 service routing domains | Protected enclave | Hosts approved DN42-facing services behind firewall policy |
+| SD-WAN VPN `442` | Catalyst SD-WAN transport | DN42 external transport | Operational in current path | Carries untrusted DN42 traffic toward protected enclaves |
+| SD-WAN VPN `42` | Catalyst SD-WAN transport | Trusted intersite transport | Planned / in progress | Direct NY, NJ, and MD routing without hub dependence |
+| Cerberus | Palo Alto PA-5220 | `dn42-ext` and protected DN42 domains | Policy boundary | DN42 ingress inspection, public-service routing, and controlled transfer between VPN 442 and VPN 42 |
+| Chimera | Firewall boundary | `dn42-ext` and private DN42 domains | Policy boundary | NY DN42-facing transit, inspection, and NAT for private/admin systems |
+| MD `dn42-public` | Protected public-service environment | Native DN42 IPv4 | Planned | Hosts approved MD DN42-facing services |
+| NJ `dn42-public` | Protected public-service environment | Native DN42 IPv4 | Planned | Hosts approved NJ DN42-facing services |
+| NY admin/private | Protected private environment | Private IPv4 | Planned / internal | Administrative and private workloads; DN42 consumption through NAT where required |
 
 ## Address Resources
 
 | Resource | Status | Function |
 |---|---|---|
-| `172.23.105.192/27` | Registered | Transit, peer-facing, and infrastructure addressing |
-| `172.23.46.0/26` | Pending DN42 registry PR #7253 | Dedicated service-enclave addressing |
+| `172.23.105.192/27` | Registered | Native DN42 public services and required DN42-facing routing functions |
+| `172.23.105.200/29` | Planned | Maryland `dn42-public` service LAN |
+| `172.23.105.208/29` | Planned | New Jersey `dn42-public` service LAN |
+| Private IPv4 | Internal | Administrative, client, and internal-only addressing |
 | `fd16:2e38:95d2::/48` | Registered; enclave implementation deferred | DN42 IPv6 addressing |
+
+The previous separate `/26` service-network concept is no longer part of the target architecture. The existing `/27` is retained and used selectively in accordance with DN42 IPv4 conservation guidance.
 
 ## Hosting Dependency
 
 The CHR is hosted in Vultr and uses a licensed 1 Gbps RouterOS data plane. The Internet-facing WireGuard transport is separate from the `dn42` routing domain. The shared Vultr `DMZ` firewall group remains attached to the CHR as its upstream Internet-interface filter by operator decision.
 
-VPN 442 and VPN 42 serve different purposes in the target architecture. VPN 442 will carry untrusted external DN42 traffic to `dn42-ext` firewall boundaries. VPN 42 will carry trusted intersite traffic among NY, NJ, and MD. Both remain subject to security policy where traffic crosses a firewall boundary.
+VPN 442 and VPN 42 serve different purposes. VPN 442 carries untrusted external DN42 traffic to `dn42-ext` firewall boundaries. VPN 42 carries trusted intersite traffic among NY, NJ, and MD. Both remain subject to security policy where traffic crosses a firewall boundary.
