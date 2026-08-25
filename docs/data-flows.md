@@ -2,7 +2,7 @@
 
 ## Current implementation status
 
-External WireGuard/eBGP peerings on `UNSC-DN42-EDGE02` are operational. The CHR receives DN42 routes from Headscarf175, Kioubit, and iEdon. The CHR-to-NJ C8000V eBGP handoff is operational over `172.23.105.220/31`. VPN 442 OMP carriage to Maryland and the ISR4331-to-Cerberus eBGP handoff are also operational; Cerberus installed 1,359 active BGP routes through `172.23.105.192` during initial verification.
+External WireGuard/eBGP peerings on `UNSC-DN42-EDGE02` are operational. The CHR receives DN42 routes from Headscarf175, Kioubit, and iEdon. The CHR-to-NJ C8000V eBGP handoff is operational over `172.23.105.220/31`. VPN 442 OMP carriage to Maryland, both ISR4331-to-Cerberus eBGP handoffs, and VPN 42 OMP propagation back to New Jersey are operational. New Jersey VPN 42 installs the DN42 table through Maryland system IP `10.100.0.9` after firewall policy removes the same-site Site-of-Origin attribute at the intentional VRF re-entry boundary.
 
 The addressing model now distinguishes public DN42 service networks from private/admin networks. MD and NJ retain native DN42-public service LANs. NY remains private/admin-only for IPv4 and uses NAT when private systems need to consume DN42 services.
 
