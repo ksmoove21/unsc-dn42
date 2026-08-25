@@ -17,6 +17,7 @@ This repository contains the system-level documentation supporting the enclave's
 - [System Security Plan](docs/system-security-plan.md)
 - [System Boundary](docs/system-boundary.md)
 - [Network Architecture](docs/network-architecture.md)
+- [Public Edge Configuration](docs/public-edge-configuration.md)
 - [Addressing Plan](docs/addressing-plan.md)
 - [Data Flow Architecture](docs/data-flows.md)
 - [Security Requirements](docs/requirements.md)
