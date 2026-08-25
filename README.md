@@ -4,11 +4,13 @@
 
 UNSC Delta November 42 is a DN42-connected service enclave operated to provide controlled network services and to exercise secure interconnection, routing, boundary protection, and service-delivery practices.
 
-The public DN42 edge is `UNSC-DN42-EDGE02`, a MikroTik CHR in Vultr New Jersey. Its three WireGuard/eBGP transit sessions are established. `172.23.105.192/27` is the registered POWOW95 transit network, but owned-prefix origination is intentionally deferred until the CHR-to-C8000V SD-WAN transit exists. A separate `172.23.46.0/26` service-network allocation is pending DN42 registry PR #7253.
+The public DN42 edge is `UNSC-DN42-EDGE02`. `172.23.105.192/27` remains the registered POWOW95 IPv4 allocation and is now used selectively for public DN42 services, peering identities, and required DN42-facing transit links. Administrative, client, and internal-only networks use private IPv4 and may use NAT when consuming DN42 services.
 
-DN42 external-to-enclave traffic will use SD-WAN VPN `442` and terminate at `dn42-ext` firewall policy boundaries. SD-WAN VPN `42` is the separate trusted intersite transport planned for NY, NJ, and MD. Both paths remain subject to inspection where they cross a security boundary. The initial enclave implementation is IPv4-focused; IPv6 enclave routing is deferred.
+Maryland and New Jersey each retain a native `dn42-public` `/29` for services intentionally reachable from DN42. New York remains private/admin-only for IPv4 and uses a DN42-facing transit for NAT and controlled DN42 access.
 
-This repository contains the system-level documentation supporting the enclave's security architecture, requirements, and operational authorization evidence.
+DN42 external-to-enclave traffic uses SD-WAN VPN `442` and terminates at `dn42-ext` firewall policy boundaries. SD-WAN VPN `42` is the separate trusted intersite transport for NY, NJ, and MD. Both paths remain subject to inspection where they cross a security boundary.
+
+This repository contains the system-level documentation supporting the enclave's security architecture, requirements, addressing plan, and operational authorization evidence.
 
 ## Documentation Set
 
@@ -22,5 +24,7 @@ This repository contains the system-level documentation supporting the enclave's
 
 ## References
 
+- [DN42 Resource Allocation Policy](https://www.dn42.dev/Policies)
+- [DN42 Address Space](https://dn42.dev/Address-Space)
 - [NIST SP 800-37 Rev. 2](https://csrc.nist.gov/pubs/sp/800-37/r2/final)
 - [NIST SP 800-53 Rev. 5.2](https://csrc.nist.gov/pubs/sp/800-53/r5/upd1/final)
