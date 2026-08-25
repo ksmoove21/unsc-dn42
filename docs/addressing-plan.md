@@ -5,43 +5,70 @@
 | Resource | Value | Use | Status |
 |---|---|---|---|
 | DN42 ASN | `AS4242421995` | Public route origin | Registered |
-| IPv4 transit prefix | `172.23.105.192/27` | Transit, peer-facing, and infrastructure addressing | Registered |
-| IPv4 service prefix | `172.23.46.0/26` | DN42-facing service enclave addressing | Pending DN42 registry PR #7253 |
-| IPv6 aggregate | `fd16:2e38:95d2::/48` | Registered IPv6 space; enclave implementation deferred | Registered |
+| IPv4 allocation | `172.23.105.192/27` | Public DN42 services and required DN42-facing infrastructure | Registered |
+| IPv6 allocation | `fd16:2e38:95d2::/48` | DN42 IPv6 addressing | Registered |
 
-The attempted expansion of `172.23.105.192/27` to `172.23.105.192/26` was reverted because `172.23.105.224/27` was allocated to another DN42 participant immediately before the expansion merged. The transit prefix therefore remains `172.23.105.192/27`.
+The attempted expansion of `172.23.105.192/27` to `172.23.105.192/26` was reverted because the adjacent `/27` was allocated to another DN42 participant immediately before the expansion merged.
 
-## Addressing Roles
+A later separate `/26` service-network request was based on an earlier design assumption that most enclave infrastructure should receive native DN42 IPv4. After review of the DN42 allocation policy, that assumption was removed from the target architecture. The existing `/27` is sufficient when DN42 IPv4 is concentrated on public services and required DN42-facing routing functions.
 
-The IPv4 design intentionally separates infrastructure from services.
+## Addressing Policy
 
-### Transit network
+DN42 IPv4 is treated as scarce public-like community address space rather than general-purpose enclave addressing.
 
-`172.23.105.192/27` is reserved for DN42 routing infrastructure, peer-facing addressing, and routed handoffs. It is not used as the general service-address pool.
+Native DN42 IPv4 is assigned to:
 
-### Service network
+- public DN42 service zones;
+- peering identities;
+- required DN42-facing routed handoffs.
 
-`172.23.46.0/26` is the dedicated DN42 service-network request. It is not treated as registered or externally originated until DN42 registry PR #7253 is merged.
+Private IPv4 is used for:
 
-### Current infrastructure assignments
+- administrative networks;
+- client networks;
+- internal-only services;
+- infrastructure that does not require direct DN42 reachability.
 
-| Function | Address | State |
+Private/admin systems may use NAT when they need to consume DN42 services. Public DN42 services remain natively routed.
+
+Policy reference: https://www.dn42.dev/Policies
+
+## IPv4 Allocation Table
+
+| Prefix / address | Location or function | Purpose | State |
+|---|---|---|---|
+| `172.23.105.192/31` | MD ISR4331 ↔ Cerberus, VPN 442 | Untrusted DN42 transit handoff | Operational |
+| `172.23.105.194/31` | MD Cerberus ↔ ISR4331, VPN 42 | Trusted return/intersite transit handoff | Planned / in progress |
+| `172.23.105.196/31` | NY edge ↔ Chimera | DN42-facing transit for private/admin access and NAT | Planned |
+| `172.23.105.198/31` | Cerberus ↔ Nexus | Routed handoff for the MD public-service zone | Planned |
+| `172.23.105.200/29` | MD `dn42-public` | Native DN42 IPv4 public-service LAN | Planned |
+| `172.23.105.208/29` | NJ `dn42-public` | Native DN42 IPv4 public-service LAN | Planned |
+| `172.23.105.219/32` | CHR peering identity | iEdon WireGuard/eBGP address | Operational |
+| `172.23.105.220/31` | CHR ↔ C8000V-NJ01 | Public-edge to SD-WAN DN42 transit | Operational |
+| `172.23.105.222` | CHR BGP router ID | BGP identifier; not an interface or service-host allocation | Operational identifier |
+| `172.23.105.216-.218` | Unassigned | Infrastructure reserve | Available |
+| `172.23.105.223` | Unassigned | Infrastructure reserve | Available |
+
+The routed/public allocation consumes 27 of the 32 IPv4 addresses when the two public `/29` service LANs, five `/31` transit links, and one `/32` peering identity are counted. The CHR router ID is tracked separately because it is a BGP identifier rather than an interface allocation.
+
+## Location Model
+
+| Location | Native DN42 public IPv4 | Private/admin IPv4 |
 |---|---|---|
-| iEdon local WireGuard/BGP address | `172.23.105.219/32` | Operational |
-| CHR side of SD-WAN transit | `172.23.105.220/31` | Planned |
-| C8000V side of SD-WAN transit | `172.23.105.221/31` | Planned |
-| CHR BGP router ID | `172.23.105.222` | Operational |
+| Maryland | `172.23.105.200/29` public-service LAN | Private IPv4 for administrative and internal-only systems |
+| New Jersey | `172.23.105.208/29` public-service LAN | Private IPv4 for administrative and internal-only systems |
+| New York | No native DN42 public-service `/29` | Private/admin-only IPv4; DN42 access uses the Chimera-facing transit and NAT where required |
 
-The CHR ownership list contains the exact `172.23.105.192/27`. No matching downstream route exists yet because the SD-WAN transit is not configured, so the prefix is intentionally not originated.
+## IPv6
 
-### IPv6
-
-`fd16:2e38:95d2::/48` remains the registered DN42 IPv6 allocation. IPv6 carriage into the enclave is deferred while the initial enclave implementation focuses on IPv4.
+`fd16:2e38:95d2::/48` remains the registered DN42 IPv6 allocation. IPv6 carriage into the enclave is deferred while the initial implementation remains IPv4-focused.
 
 ## Addressing Principles
 
-1. Transit and service addressing remain separate so routing infrastructure does not consume service-space assignments.
-2. Only prefixes registered to `POWOW95-MNT` may be originated externally.
-3. Point-to-point and peer-facing addresses are drawn from the registered transit network.
-4. Service workloads use the dedicated service prefix after registry approval.
-5. Internal component prefixes are not automatically leaked into other homelab routing domains.
+1. DN42 IPv4 is not assigned to a segment solely because that segment participates in the enclave.
+2. Public DN42 service zones receive native DN42 IPv4.
+3. Administrative and client networks use private IPv4 and may NAT when consuming DN42 services.
+4. Required DN42-facing routed handoffs may use `/31` addressing from the registered `/27`.
+5. New York remains private/admin-only for IPv4 and does not receive a native `dn42-public` `/29` in the current design.
+6. Only prefixes registered to `POWOW95-MNT` may be originated externally.
+7. Non-DN42 routing-domain prefixes are not implicitly leaked into the DN42 routing domain.
