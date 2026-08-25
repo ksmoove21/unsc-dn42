@@ -38,7 +38,7 @@ Policy reference: https://www.dn42.dev/Policies
 | Prefix / address | Location or function | Purpose | State |
 |---|---|---|---|
 | `172.23.105.192/31` | MD ISR4331 ↔ Cerberus, VPN 442 | Untrusted DN42 transit handoff | Operational |
-| `172.23.105.194/31` | MD Cerberus ↔ ISR4331, VPN 42 | Trusted return/intersite transit handoff | Planned / in progress |
+| `172.23.105.194/31` | MD Cerberus ↔ ISR4331, VPN 42 | Trusted return/intersite transit handoff | Operational |
 | `172.23.105.196/31` | NY edge ↔ Chimera | DN42-facing transit for private/admin access and NAT | Planned |
 | `172.23.105.198/31` | Cerberus ↔ Nexus | Routed handoff for the MD public-service zone | Planned |
 | `172.23.105.200/29` | MD `dn42-public` | Native DN42 IPv4 public-service LAN | Planned |
