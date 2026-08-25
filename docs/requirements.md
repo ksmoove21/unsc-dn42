@@ -31,8 +31,18 @@ The system is authorized to process, store, and transmit public and lab-operatio
 ## Routing and Addressing
 
 1. External route advertisement shall be limited to prefixes currently registered to `POWOW95-MNT`.
-2. `172.23.105.192/27` shall be treated as the registered IPv4 transit and infrastructure prefix.
-3. `172.23.46.0/26` shall not be treated as an active registered service prefix until DN42 registry PR #7253 is merged.
-4. Internal routing exchange shall be limited to approved DN42 transit, service, and documented remote prefixes.
-5. Default routes and non-DN42 routing-domain prefixes shall not be introduced into the DN42 routing domain.
-6. Transit addressing and service addressing shall remain separated by function.
+2. `172.23.105.192/27` shall remain the registered IPv4 allocation for native DN42 public services and required DN42-facing routing functions.
+3. Native DN42 IPv4 shall not be assigned to administrative, client, or internal-only segments solely because they participate in the enclave.
+4. Maryland `dn42-public` shall use `172.23.105.200/29`.
+5. New Jersey `dn42-public` shall use `172.23.105.208/29`.
+6. New York shall remain private/admin-only for IPv4 in the current design and shall not receive a native `dn42-public` `/29`.
+7. Private/admin systems may use NAT at an approved DN42-facing boundary when consuming DN42 services.
+8. Required DN42-facing routed handoffs may use `/31` addressing from the registered `/27`.
+9. Default routes and non-DN42 routing-domain prefixes shall not be introduced into the DN42 routing domain except through explicitly designed and controlled translation or routing policy.
+10. The previous separate `/26` service-network concept is not part of the current target architecture.
+
+## Policy Basis
+
+The addressing model follows the DN42 resource-allocation guidance that IPv4 is scarce, a typical `/27` provides 32 individual addresses, and NAT should be considered for systems that consume DN42 without directly providing DN42 services.
+
+Reference: https://www.dn42.dev/Policies
