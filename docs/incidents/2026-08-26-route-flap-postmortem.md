@@ -4,7 +4,7 @@
 
 On 2026-08-26, external DN42 operators reported severe instability for the POWOW95 prefix `172.23.105.192/27`. Independent observers measured hundreds of route changes per second, including approximately 345 changes/s in one network and 473 changes/s in Kioubit's network.
 
-The investigation initially focused on BGP session instability because historical logs on `C8000V-MD01` showed repeated session resets toward iEdon. That was a valid indicator, but it was not sufficient to explain the complete event.
+The investigation initially focused on BGP session instability because historical logs on `C8000V-MD02` showed repeated session resets toward iEdon. That was a valid indicator, but it was not sufficient to explain the complete event.
 
 The decisive finding was on `UNSC-DN42-EDGE02`, the MikroTik CHR public edge. The CHR originated `172.23.105.192/27` using a static route whose next hop was `172.23.105.221`, the internal address of `C8000V-NJ01`. Packet captures of the CHR's actual BGP advertisements showed that this internal forwarding next hop was also being exported toward public DN42 peers. The public prefix therefore was not cleanly anchored to the CHR itself.
 
@@ -14,16 +14,18 @@ Post-change validation from Kioubit and RoutedBits showed stable route import, z
 
 ## Device Identity
 
-This incident involved multiple C8000V routers. They are identified by hostname throughout this document because the production environment contains four C8000V instances.
+This incident crossed several routers with similar names. Exact hostnames are used throughout because the production environment contains multiple C8000V instances.
 
 | Device | Role in this incident |
 |---|---|
 | `UNSC-DN42-EDGE02` | MikroTik CHR in Vultr New Jersey; authoritative public DN42 edge for `AS4242421995` |
 | `C8000V-NJ01` | New Jersey SD-WAN router; internal CHR handoff at `172.23.105.221` |
-| `C8000V-MD01` | Original home/Maryland C8000V that previously terminated the GRE/BGP peering toward iEdon |
+| `C8000V-MD02` | Original home/Maryland public DN42 edge; terminated the GRE/BGP peering toward iEdon and direct Cerberus handoff |
+| `C8000V-MD01` | Former Maryland SD-WAN edge; a different C8000V from `C8000V-MD02`; replaced in the SD-WAN role |
+| `c4331-md01` | Current Maryland ISR4331 SD-WAN edge for site 12, carrying VPN 442 and VPN 42 routing contexts |
 | Cerberus | Palo Alto firewall and `dn42-ext` security boundary |
 
-`C8000V-MD01` and `C8000V-NJ01` are different routers and must not be described interchangeably. Generic descriptions such as "the C8000V" or "legacy C8000V" are intentionally avoided because they are ambiguous in this topology.
+`C8000V-MD02`, `C8000V-MD01`, and `C8000V-NJ01` are separate routers with different roles. Generic descriptions such as "the C8000V" or "legacy C8000V" are intentionally avoided.
 
 ## Impact
 
@@ -99,9 +101,9 @@ AS_PATH:  4242421995 4242421995
 
 The prefix was originated by the CHR, but the exported NEXT_HOP pointed past the CHR toward `C8000V-NJ01`.
 
-### 3. Historical `C8000V-MD01` instability was real, but not enough by itself
+### 3. Historical `C8000V-MD02` instability was real, but not enough by itself
 
-`C8000V-MD01`, the original home router that previously peered with iEdon over GRE, had historical BGP logs showing:
+`C8000V-MD02`, the original home public DN42 router that peered with iEdon over GRE, had historical BGP logs showing:
 
 - Connection Collision Resolution events;
 - Hold Timer expiration;
@@ -150,7 +152,7 @@ The investigation changed direction several times as evidence eliminated possibl
 | Question / hypothesis | Indicator examined | What the indicator meant | Disposition |
 |---|---|---|---|
 | Was RoutedBits itself flapping? | CHR BGP session history | RoutedBits stayed Established through the original incident window | Not the initiating session failure |
-| Was `C8000V-MD01` unstable toward iEdon? | IOS-XE BGP logs | Collision Resolution, Hold Timer expiration, peer closures, Router ID change | Confirmed instability, but insufficient as sole RCA |
+| Was `C8000V-MD02` unstable toward iEdon? | IOS-XE BGP logs | Collision Resolution, Hold Timer expiration, peer closures, Router ID change | Confirmed instability, but insufficient as sole RCA |
 | Was AS4242421995 leaking the full DN42 table? | Outbound prefix filters and peer advertisements | Only the owned `/27` was permitted outbound | Ruled out |
 | Were AS_PATH prepends causing the fault? | Saved advertisements and external looking glasses | Prepend counts matched intended TE policy | Ruled out as root cause |
 | Was the CHR origin dependent on another router? | `/routing/route print detail` | Active `/27` static pointed at `172.23.105.221` on `C8000V-NJ01` | Confirmed design defect |
@@ -172,7 +174,7 @@ The primary design defect was improper coupling of public-prefix origination and
 
 This was corrected by separating the aggregate-origin anchor from the forwarding path and explicitly controlling external NEXT_HOP behavior.
 
-Historical BGP instability on `C8000V-MD01` toward iEdon was a valid contributing signal and complicated the investigation, but it should not be conflated with `C8000V-NJ01` or treated as the sole root cause.
+Historical BGP instability on `C8000V-MD02` toward iEdon was a valid contributing signal and complicated the investigation, but it should not be conflated with `C8000V-NJ01`, `C8000V-MD01`, or treated as the sole root cause.
 
 ## Corrective Actions
 
@@ -206,13 +208,13 @@ Kioubit required Extended Next Hop to be enabled before IPv4 NLRI could be corre
 
 ### Remove unnecessary return advertisement
 
-The Palo Alto export rule advertising `172.23.105.192/27` toward `dn42-ext` was disabled because that route advertisement was no longer required for the retired public-DN42 peering function on `C8000V-MD01`.
+The Palo Alto export rule advertising `172.23.105.192/27` toward `dn42-ext` was disabled because that route advertisement was no longer required for `C8000V-MD02`'s former public-DN42 peering function.
 
 ## Remediation Sequence
 
 The repair was intentionally staged to preserve forwarding while separating control-plane functions:
 
-1. Disable the Palo Alto `/27` export toward `dn42-ext` that was no longer required for `C8000V-MD01`'s former public-DN42 peering function.
+1. Disable the Palo Alto `/27` export toward `dn42-ext` that was no longer required for `C8000V-MD02`'s former public-DN42 peering function.
 2. Preserve the active `/27 -> C8000V-NJ01` forwarding route temporarily.
 3. Add a high-distance blackhole route as an independent aggregate-origin anchor.
 4. Inspect saved BGP advertisements rather than relying only on the local RIB.
@@ -279,6 +281,7 @@ During remediation, Kioubit briefly received `0.0.0.0` as NEXT_HOP when `force-s
 5. BGP NEXT_HOP is an acceptance criterion, not an implementation detail.
 6. IPv4 NLRI over IPv6 BGP sessions requires validated Extended Next Hop capability negotiation.
 7. Device names must be used in incident documentation. Generic labels such as "the C8000V" are insufficient in a topology containing multiple C8000V routers.
+8. Each material routing change must include a Git commit/PR explanation of both what changed and why, plus validation evidence when available.
 
 ## References
 
