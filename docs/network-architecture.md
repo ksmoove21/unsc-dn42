@@ -2,15 +2,15 @@
 
 ## Current State
 
-`UNSC-DN42-EDGE02`, a MikroTik CHR in Vultr New Jersey, is the operational public DN42 edge. It maintains three established WireGuard/eBGP full-table peers in the `dn42` VRF.
+`UNSC-DN42-EDGE02`, a MikroTik CHR in Vultr New Jersey, is the operational public DN42 edge. It maintains four established WireGuard/eBGP full-table peers in the `dn42` VRF: Headscarf175, RoutedBits, Kioubit, and iEdon.
 
 The registered IPv4 allocation remains `172.23.105.192/27`. After review of DN42 IPv4 allocation policy, the enclave no longer treats native DN42 IPv4 as general-purpose addressing for every routed or administrative segment. DN42 IPv4 is concentrated on public service zones, peering identities, and selected DN42-facing transit links. Administrative and client networks use private IPv4 and may use NAT when they need to consume DN42 services.
 
-The CHR-to-NJ C8000V eBGP handoff is operational over `172.23.105.220/31`. The C8000V advertises the DN42 table into OMP for VPN 442, the MD ISR4331 redistributes the routes to eBGP, and Cerberus carries the routes across the firewall-mediated boundary into MD VPN 42. After the Site-of-Origin attribute was normalized at that boundary, MD originated the full table into OMP and NJ VPN 42 installed the DN42 routes through MD system IP `10.100.0.9`.
+The CHR-to-`C8000V-NJ01` eBGP handoff is operational over `172.23.105.220/31`. `C8000V-NJ01` imports the DN42 table into SD-WAN VPN 442 for controlled transport toward enclave security boundaries. It is not the authoritative public DN42 origin router.
 
-The CHR locally originates `172.23.105.192/27` while using forwarding reachability toward the NJ C8000V. This preserves `AS4242421995` as the public origin and prevents enclave-private ASNs from appearing in external advertisements. IPv6 enclave implementation remains deferred.
+The CHR originates `172.23.105.192/27` as `AS4242421995`. Following the 2026-08-26 route-flap incident, aggregate origination is anchored independently of the internal C8000V forwarding path. Public BGP peers receive the CHR itself as NEXT_HOP where applicable, including RFC 8950 Extended Next Hop for IPv4 NLRI carried over IPv6-link-local BGP sessions.
 
-The current public-edge routing and control baseline is documented in [Public Edge Configuration](public-edge-configuration.md).
+The current public-edge routing and control baseline is documented in [Public Edge Configuration](public-edge-configuration.md). The route-flap investigation is documented in [2026-08-26 DN42 Route Flap Incident](incidents/2026-08-26-route-flap-postmortem.md).
 
 Policy reference: https://www.dn42.dev/Policies
 
@@ -20,10 +20,12 @@ Policy reference: https://www.dn42.dev/Policies
 flowchart TB
   subgraph mesh["DN42 transit mesh"]
     H["Headscarf175\nAS4242420842"]
+    R["RoutedBits\nAS4242420207"]
     K["Kioubit\nAS4242423914"]
-    I["iEdon Net us-sjc\nAS4242422189"]
+    I["iEdon Net\nAS4242422189"]
   end
   E["UNSC-DN42-EDGE02\nPublic DN42 Edge"]
+  NJ["C8000V-NJ01\nSD-WAN handoff"]
   S442["SD-WAN VPN 442\nDN42 external transport"]
   S42["SD-WAN VPN 42\ntrusted intersite transport"]
   CBR["Cerberus\ndn42-ext"]
@@ -33,9 +35,11 @@ flowchart TB
   NYA["NY admin/private\nRFC1918 + NAT"]
 
   H -. "WireGuard + eBGP" .-> E
+  R -. "WireGuard + eBGP" .-> E
   K -. "WireGuard + eBGP" .-> E
   I -. "WireGuard + eBGP" .-> E
-  E --> S442
+  E --> NJ
+  NJ --> S442
   S442 --> CBR
   S442 --> CHM
   CBR --> MDP
@@ -50,14 +54,21 @@ flowchart TB
 
 | Component | Responsibility |
 |---|---|
-| `UNSC-DN42-EDGE02` | Public WireGuard and eBGP edge, DN42 path selection, and registered-prefix origination when downstream service reachability exists |
-| Headscarf175, Kioubit, iEdon | External full-table DN42 transit peers |
+| `UNSC-DN42-EDGE02` | Authoritative public WireGuard/eBGP edge, DN42 path selection, stable registered-prefix origination, and public NEXT_HOP control |
+| Headscarf175, RoutedBits, Kioubit, iEdon | External full-table DN42 transit peers |
+| `C8000V-NJ01` | Internal CHR-to-SD-WAN handoff for DN42 route transport toward the enclave |
 | SD-WAN VPN `442` | Untrusted DN42 transport from the external DN42 domain toward protected enclaves |
 | Cerberus `dn42-ext` and internal DN42 zones | eBGP termination, inspection, and controlled route transfer between VPN 442 and VPN 42 |
 | Chimera `dn42-ext` zone | Firewall termination and policy enforcement for NY DN42 access |
 | SD-WAN VPN `42` | Trusted routed communication among NY, NJ, and MD without hub dependence |
 | MD and NJ `dn42-public` zones | Native DN42 IPv4 public-service networks |
 | NY admin/private zone | Private IPv4; DN42 consumption through NAT where required |
+
+## Device Naming Note
+
+The production environment contains multiple C8000V routers. Documentation uses exact hostnames rather than generic labels such as "the C8000V."
+
+`C8000V-NJ01` is the New Jersey SD-WAN handoff used by the CHR. `C8000V-MD01` is the original home/Maryland C8000V that previously terminated the GRE/BGP session toward iEdon. They are separate devices with separate roles.
 
 ## IPv4 Architecture
 
@@ -69,17 +80,31 @@ flowchart TB
 | `172.23.105.198/31` | Cerberus ↔ Nexus public-service handoff | Planned |
 | `172.23.105.200/29` | MD `dn42-public` | Planned |
 | `172.23.105.208/29` | NJ `dn42-public` | Planned |
-| `172.23.105.219/32` | CHR peering identity | Operational |
-| `172.23.105.220/31` | CHR ↔ C8000V-NJ01 transit | Operational |
+| `172.23.105.219/32` | CHR iEdon peering identity | Operational |
+| `172.23.105.220/31` | CHR ↔ `C8000V-NJ01` transit | Operational |
 | `172.23.105.222` | CHR BGP router ID | Operational identifier |
 
-The design consumes 27 of the 32 IPv4 addresses for routed/public functions. New York does not receive a native `dn42-public` `/29`; its administrative/private systems use private IPv4 and NAT when accessing DN42.
+The design consumes DN42 IPv4 primarily for routed/public functions. New York does not receive a native `dn42-public` `/29`; its administrative/private systems use private IPv4 and NAT when accessing DN42.
 
 ## Public Edge Policy
 
-The CHR export policy permits only prefixes currently registered to POWOW95. `172.23.105.192/27` is the only registered POWOW95 IPv4 allocation in the current architecture. `fd16:2e38:95d2::/48` remains registered for IPv6.
+The CHR export policy permits only prefixes currently registered to POWOW95. `172.23.105.192/27` is the registered POWOW95 IPv4 allocation in the current architecture. `fd16:2e38:95d2::/48` remains registered for IPv6.
 
-The CHR does not export arbitrary learned routes or provide unrestricted transit. For CHR-originated DN42 traffic, local preference is ordered Headscarf175, Kioubit, then iEdon based on measured Vultr underlay RTT.
+Inbound preference is intentionally ordered by LOCAL_PREF:
+
+1. Headscarf175: 400
+2. RoutedBits: 300
+3. Kioubit: 200
+4. iEdon: 100
+
+Outbound IPv4 AS_PATH policy is intentionally ordered:
+
+1. Headscarf175: no additional prepend
+2. RoutedBits: two copies of `4242421995` in the resulting advertised path
+3. Kioubit: three copies
+4. iEdon: four copies
+
+These policies influence path preference only. They are not used as a substitute for stable route origination or correct NEXT_HOP behavior.
 
 ## SD-WAN Security Roles
 
@@ -94,10 +119,10 @@ VPN `42` is the trusted intersite routing service among NY, NJ, and MD. Trusted 
 ## Isolation Principles
 
 1. The WireGuard Internet underlay remains separate from the DN42 routing domain.
-2. DN42 IPv4 is assigned to public DN42 services and required DN42-facing routing functions, not automatically to all enclave segments.
-3. Administrative and client networks use private IPv4 and may NAT when consuming DN42 services.
-4. MD and NJ maintain native DN42-public IPv4 service zones.
-5. NY remains private/admin-only for IPv4 in the current design.
+2. Public prefix origination on `UNSC-DN42-EDGE02` is independent of downstream SD-WAN-router availability.
+3. External BGP NEXT_HOP is validated per peer before production acceptance.
+4. DN42 IPv4 is assigned to public DN42 services and required DN42-facing routing functions, not automatically to all enclave segments.
+5. Administrative and client networks use private IPv4 and may NAT when consuming DN42 services.
 6. VPN 442 carries external DN42 traffic only into explicit `dn42-ext` policy boundaries.
 7. VPN 42 provides trusted intersite routing but does not bypass firewall inspection.
 8. DN42 routes are not implicitly leaked into BlueLine, GreenLine, RedLine, management, household, or other non-DN42 domains.
