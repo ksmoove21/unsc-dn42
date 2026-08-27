@@ -66,9 +66,11 @@ flowchart TB
 
 ## Device Naming Note
 
-The production environment contains multiple C8000V routers. Documentation uses exact hostnames rather than generic labels such as "the C8000V."
+The production environment contains multiple C8000V routers. Documentation uses exact hostnames rather than generic labels such as "the C8000V" or "legacy C8000V."
 
-`C8000V-NJ01` is the New Jersey SD-WAN handoff used by the CHR. `C8000V-MD01` is the original home/Maryland C8000V that previously terminated the GRE/BGP session toward iEdon. They are separate devices with separate roles.
+- `C8000V-MD02` is the original home/Maryland public DN42 edge that terminated the GRE/BGP peering toward iEdon.
+- `C8000V-MD01` is a separate router: the former Maryland SD-WAN edge, replaced in that role by `c4331-md01` (ISR4331).
+- `C8000V-NJ01` is the New Jersey SD-WAN handoff used by the CHR.
 
 ## IPv4 Architecture
 
@@ -76,7 +78,7 @@ The production environment contains multiple C8000V routers. Documentation uses 
 |---|---|---|
 | `172.23.105.192/31` | MD ISR4331 ↔ Cerberus VPN 442 transit | Operational |
 | `172.23.105.194/31` | MD Cerberus ↔ ISR4331 VPN 42 transit | Operational |
-| `172.23.105.196/31` | NY edge ↔ Chimera DN42-facing/NAT transit | Planned |
+| `172.23.105.196/31` | Historical `C8000V-MD02` ↔ Cerberus direct DN42 handoff | Public-edge path retired |
 | `172.23.105.198/31` | Cerberus ↔ Nexus public-service handoff | Planned |
 | `172.23.105.200/29` | MD `dn42-public` | Planned |
 | `172.23.105.208/29` | NJ `dn42-public` | Planned |
