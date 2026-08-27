@@ -10,7 +10,7 @@ Maryland and New Jersey each retain a native `dn42-public` `/29` for services in
 
 DN42 external-to-enclave traffic uses SD-WAN VPN `442` and terminates at `dn42-ext` firewall policy boundaries. SD-WAN VPN `42` is the separate trusted intersite transport for NY, NJ, and MD. Both paths remain subject to inspection where they cross a security boundary.
 
-This repository contains the system-level documentation supporting the enclave's security architecture, requirements, addressing plan, operational authorization evidence, and engineering incident reviews.
+This repository contains the system-level documentation supporting the enclave's security architecture, requirements, addressing plan, operational authorization evidence, engineering incident reviews, and architecture change history.
 
 ## Documentation Set
 
@@ -22,10 +22,15 @@ This repository contains the system-level documentation supporting the enclave's
 - [Data Flow Architecture](docs/data-flows.md)
 - [Security Requirements](docs/requirements.md)
 - [Patch Management Architecture](docs/patch-management.md)
+- [Engineering Change Log](CHANGELOG.md)
 
 ## Engineering Incident Reviews
 
 - [2026-08-26 DN42 Route Flap Incident](docs/incidents/2026-08-26-route-flap-postmortem.md) - investigation and remediation of severe route churn for `172.23.105.192/27`, including BGP NEXT_HOP validation, route-origin anchoring, Extended Next Hop, and external looking-glass verification.
+
+## Device Naming
+
+Multiple C8000V routers exist in the production environment. Documentation uses exact hostnames whenever a specific router is intended. In particular, `C8000V-MD02` was the original home public DN42 edge, `C8000V-MD01` was the former Maryland SD-WAN edge, `c4331-md01` is the current Maryland ISR4331 SD-WAN edge, and `C8000V-NJ01` is the New Jersey SD-WAN handoff behind the CHR.
 
 ## References
 
