@@ -8,13 +8,13 @@ The investigation initially focused on BGP session instability because historica
 
 The decisive finding was on `UNSC-DN42-EDGE02`, the MikroTik CHR public edge. The CHR originated `172.23.105.192/27` using a static route whose next hop was `172.23.105.221`, the internal address of `C8000V-NJ01`. Packet captures of the CHR's actual BGP advertisements showed that this internal forwarding next hop was also being exported toward public DN42 peers. The public prefix therefore was not cleanly anchored to the CHR itself.
 
-The corrective action separated route origination from downstream forwarding. A dedicated blackhole route was added as a stable aggregate-origin anchor, public peer sessions were configured to advertise the CHR itself as NEXT_HOP where appropriate, Extended Next Hop was enabled for IPv4 NLRI over IPv6-link-local BGP sessions, and the obsolete firewall export of the /27 toward `dn42-ext` was disabled.
+The corrective action separated route origination from downstream forwarding. A dedicated blackhole route was added as a stable aggregate-origin anchor, public peer sessions were configured to advertise the CHR itself as NEXT_HOP where appropriate, Extended Next Hop was enabled for IPv4 NLRI over IPv6-link-local BGP sessions, and the no-longer-required firewall export of the /27 toward `dn42-ext` was disabled.
 
 Post-change validation from Kioubit and RoutedBits showed stable route import, zero observed withdrawals on the corrected Kioubit session, and the expected CHR next-hop values.
 
 ## Device Identity
 
-This incident involved multiple C8000V routers. They are identified by hostname throughout this document because the environment contains four production C8000V instances.
+This incident involved multiple C8000V routers. They are identified by hostname throughout this document because the production environment contains four C8000V instances.
 
 | Device | Role in this incident |
 |---|---|
@@ -23,7 +23,7 @@ This incident involved multiple C8000V routers. They are identified by hostname 
 | `C8000V-MD01` | Original home/Maryland C8000V that previously terminated the GRE/BGP peering toward iEdon |
 | Cerberus | Palo Alto firewall and `dn42-ext` security boundary |
 
-`C8000V-MD01` and `C8000V-NJ01` are different routers and must not be described interchangeably.
+`C8000V-MD01` and `C8000V-NJ01` are different routers and must not be described interchangeably. Generic descriptions such as "the C8000V" or "legacy C8000V" are intentionally avoided because they are ambiguous in this topology.
 
 ## Impact
 
@@ -87,7 +87,7 @@ The CHR log showed the RoutedBits BGP session establishing at `2026-08-26 00:53:
 
 This distinction was important: a BGP session can remain Established while individual NLRI are repeatedly changed or withdrawn.
 
-### 2. CHR advertisement exposed the internal C8000V as NEXT_HOP
+### 2. CHR advertisement exposed `C8000V-NJ01` as NEXT_HOP
 
 A saved-advertisement packet capture toward RoutedBits showed:
 
@@ -143,6 +143,27 @@ AS_PATH:  4242421995 4242421995 4242421995 4242421995
 
 These captures confirmed both stable origination and the intended outbound traffic-engineering hierarchy.
 
+## Investigation Path and Indicators
+
+The investigation changed direction several times as evidence eliminated possible causes. That sequence is important because the incident was not solved by a single `show` command.
+
+| Question / hypothesis | Indicator examined | What the indicator meant | Disposition |
+|---|---|---|---|
+| Was RoutedBits itself flapping? | CHR BGP session history | RoutedBits stayed Established through the original incident window | Not the initiating session failure |
+| Was `C8000V-MD01` unstable toward iEdon? | IOS-XE BGP logs | Collision Resolution, Hold Timer expiration, peer closures, Router ID change | Confirmed instability, but insufficient as sole RCA |
+| Was AS4242421995 leaking the full DN42 table? | Outbound prefix filters and peer advertisements | Only the owned `/27` was permitted outbound | Ruled out |
+| Were AS_PATH prepends causing the fault? | Saved advertisements and external looking glasses | Prepend counts matched intended TE policy | Ruled out as root cause |
+| Was the CHR origin dependent on another router? | `/routing/route print detail` | Active `/27` static pointed at `172.23.105.221` on `C8000V-NJ01` | Confirmed design defect |
+| What NEXT_HOP was actually exported? | RouterOS saved-advertisement PCAP | RoutedBits received `NEXT_HOP=172.23.105.221` | Decisive evidence |
+| Did IPv6-link-local BGP have the required capability? | Kioubit session capabilities and PCAP | `0.0.0.0` appeared until Extended Next Hop was enabled correctly | Remediation issue identified |
+| Did the fix work externally? | Kioubit and RoutedBits looking glasses / peer telemetry | Correct CHR NEXT_HOP; Kioubit showed one import update and zero withdrawals | Validated |
+
+### Why the external path count was misleading
+
+RoutedBits showed dozens of available paths to the `/27`. That looked severe, but many entries were RoutedBits' own internally imported representations of valid paths. The high path count was an indicator of topology and propagation, not proof that AS4242421995 was originating dozens of routes or dozens of direct advertisements.
+
+The useful evidence was the directly learned path and its attributes.
+
 ## Root Cause
 
 The primary design defect was improper coupling of public-prefix origination and internal forwarding on `UNSC-DN42-EDGE02`.
@@ -185,7 +206,22 @@ Kioubit required Extended Next Hop to be enabled before IPv4 NLRI could be corre
 
 ### Remove unnecessary return advertisement
 
-The Palo Alto export rule advertising `172.23.105.192/27` toward `dn42-ext` was disabled because that route advertisement was no longer required for the retired public-edge design on `C8000V-MD01`.
+The Palo Alto export rule advertising `172.23.105.192/27` toward `dn42-ext` was disabled because that route advertisement was no longer required for the retired public-DN42 peering function on `C8000V-MD01`.
+
+## Remediation Sequence
+
+The repair was intentionally staged to preserve forwarding while separating control-plane functions:
+
+1. Disable the Palo Alto `/27` export toward `dn42-ext` that was no longer required for `C8000V-MD01`'s former public-DN42 peering function.
+2. Preserve the active `/27 -> C8000V-NJ01` forwarding route temporarily.
+3. Add a high-distance blackhole route as an independent aggregate-origin anchor.
+4. Inspect saved BGP advertisements rather than relying only on the local RIB.
+5. Configure CHR NEXT_HOP self behavior for the IPv6-link-local peers that support Extended Next Hop.
+6. Enable and validate Extended Next Hop on the Kioubit session after a `0.0.0.0` NEXT_HOP exposed the capability mismatch.
+7. Confirm iEdon's IPv4 session already advertised the correct local CHR next hop.
+8. Validate all four peer advertisements by packet capture.
+9. Validate externally through Kioubit, RoutedBits, and iEdon looking glasses / peer telemetry.
+10. Stop making changes and observe session stability and withdrawal counters.
 
 ## Why We Did Not Catch This During Initial Design
 
@@ -213,6 +249,8 @@ For every originated public prefix and every peer:
 ```
 
 Once saved-advertisement PCAPs were inspected, the defect became immediately visible.
+
+This is the central engineering lesson from the event: a design can be locally coherent and still be wrong from the neighboring autonomous system's perspective. Validation must cross the AS boundary.
 
 ## Investigation Lessons
 
