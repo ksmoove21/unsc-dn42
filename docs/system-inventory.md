@@ -6,13 +6,15 @@
 |---|---|---|---|---|
 | `UNSC-DN42-EDGE02` | MikroTik CHR in Vultr, New Jersey | `dn42` VRF | Operational edge | Authoritative public WireGuard/eBGP DN42 edge, route selection, peering identity, and registered-prefix origination |
 | `C8000V-NJ01` | Cisco Catalyst 8000V, New Jersey | CHR-to-SD-WAN handoff | Operational | Internal DN42 handoff between `UNSC-DN42-EDGE02` and SD-WAN VPN 442 at `172.23.105.221`; not the authoritative public DN42 origin |
-| `C8000V-MD01` | Cisco Catalyst 8000V, Maryland/home | Historical DN42 GRE/BGP role plus production routing functions | Operational device; former public-DN42 peering role retired | Original home/Maryland C8000V that terminated the GRE/BGP relationship toward iEdon; separate device from `C8000V-NJ01` |
+| `C8000V-MD02` | Cisco Catalyst 8000V, Maryland/home | Historical public DN42 edge | Public DN42 role retired | Original home DN42 edge that terminated the GRE/BGP peering toward iEdon and the direct Cerberus DN42 handoff |
+| `C8000V-MD01` | Cisco Catalyst 8000V, Maryland/home | Former Catalyst SD-WAN edge | Decommissioned from SD-WAN role | Former Maryland SD-WAN router; separate device from `C8000V-MD02` |
+| `c4331-md01` | Cisco ISR4331, Maryland/home | Catalyst SD-WAN site 12 | Operational | Current Maryland SD-WAN edge carrying DN42 VPN 442 and VPN 42 routing contexts |
 | Headscarf175 | External transit peer | WireGuard/eBGP | Operational | Full-table DN42 transit |
 | RoutedBits | External transit peer | WireGuard/eBGP | Operational | Full-table DN42 transit |
 | Kioubit | External transit peer | WireGuard/eBGP | Operational | Full-table DN42 transit |
 | iEdon | External transit peer | WireGuard/eBGP | Operational | Full-table DN42 transit |
 | SD-WAN VPN `442` | Catalyst SD-WAN transport | DN42 external transport | Operational in current path | Carries untrusted DN42 traffic toward protected enclaves |
-| SD-WAN VPN `42` | Catalyst SD-WAN transport | Trusted intersite transport | Planned / in progress | Direct NY, NJ, and MD routing without hub dependence |
+| SD-WAN VPN `42` | Catalyst SD-WAN transport | Trusted intersite transport | Operational in verified MD/NJ path | Carries inspected DN42 routes between sites |
 | Cerberus | Palo Alto PA-5220 | `dn42-ext` and protected DN42 domains | Policy boundary | DN42 ingress inspection, public-service routing, and controlled transfer between VPN 442 and VPN 42 |
 | Chimera | Firewall boundary | `dn42-ext` and private DN42 domains | Policy boundary | NY DN42-facing transit, inspection, and NAT for private/admin systems |
 | MD `dn42-public` | Protected public-service environment | Native DN42 IPv4 | Planned | Hosts approved MD DN42-facing services |
@@ -21,14 +23,15 @@
 
 ### C8000V naming rule
 
-The production environment contains four C8000V routers. DN42 documentation must identify a C8000V by exact hostname whenever the specific device matters.
+The production environment contains multiple C8000V routers. DN42 documentation identifies a C8000V by exact hostname whenever the specific device matters.
 
-For the 2026-08-26 route-flap incident, the two relevant C8000Vs are:
+For the 2026-08-26 route-flap investigation:
 
-- `C8000V-NJ01`: the New Jersey SD-WAN handoff at `172.23.105.221` behind the CHR.
-- `C8000V-MD01`: the original home/Maryland router that terminated the GRE/BGP peering toward iEdon.
+- `C8000V-MD02` is the original home public DN42 edge that peered with iEdon over GRE.
+- `C8000V-MD01` is a different router: the former Maryland SD-WAN edge, now replaced in that role by `c4331-md01` (ISR4331).
+- `C8000V-NJ01` is the New Jersey SD-WAN handoff at `172.23.105.221` behind the CHR.
 
-The terms "the C8000V" and "legacy C8000V" are intentionally avoided because they are ambiguous in this environment.
+Generic descriptions such as "the C8000V" or "legacy C8000V" are avoided because they are ambiguous in this topology.
 
 ## Address Resources
 
