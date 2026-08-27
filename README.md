@@ -10,7 +10,7 @@ Maryland and New Jersey each retain a native `dn42-public` `/29` for services in
 
 DN42 external-to-enclave traffic uses SD-WAN VPN `442` and terminates at `dn42-ext` firewall policy boundaries. SD-WAN VPN `42` is the separate trusted intersite transport for NY, NJ, and MD. Both paths remain subject to inspection where they cross a security boundary.
 
-This repository contains the system-level documentation supporting the enclave's security architecture, requirements, addressing plan, and operational authorization evidence.
+This repository contains the system-level documentation supporting the enclave's security architecture, requirements, addressing plan, operational authorization evidence, and engineering incident reviews.
 
 ## Documentation Set
 
@@ -22,6 +22,10 @@ This repository contains the system-level documentation supporting the enclave's
 - [Data Flow Architecture](docs/data-flows.md)
 - [Security Requirements](docs/requirements.md)
 - [Patch Management Architecture](docs/patch-management.md)
+
+## Engineering Incident Reviews
+
+- [2026-08-26 DN42 Route Flap Incident](docs/incidents/2026-08-26-route-flap-postmortem.md) - investigation and remediation of severe route churn for `172.23.105.192/27`, including BGP NEXT_HOP validation, route-origin anchoring, Extended Next Hop, and external looking-glass verification.
 
 ## References
 
