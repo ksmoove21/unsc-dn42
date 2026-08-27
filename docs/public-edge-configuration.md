@@ -32,7 +32,15 @@ The edge maintains four established WireGuard/eBGP sessions. Each transit peer t
 
 The CHR also peers internally with `C8000V-NJ01` using private enclave ASN `4200102442`. That adjacency carries DN42 reachability toward SD-WAN VPN 442. `C8000V-NJ01` is an internal transport/handoff router, not the authoritative public origin for the POWOW95 aggregate.
 
-`C8000V-MD01` is a separate device. It is the original home/Maryland C8000V that previously terminated the GRE/BGP relationship toward iEdon. Documentation must use the exact hostname when referring to either C8000V.
+## Device Identity Note
+
+The Maryland C8000Vs have separate histories:
+
+- `C8000V-MD02` was the original home public DN42 edge and terminated the GRE/BGP relationship toward iEdon.
+- `C8000V-MD01` was the former Maryland SD-WAN edge and was replaced in that role by `c4331-md01` (ISR4331).
+- `C8000V-NJ01` is the current New Jersey SD-WAN handoff behind the CHR.
+
+Exact hostnames are used whenever a specific C8000V is referenced.
 
 ## Route Origination
 
